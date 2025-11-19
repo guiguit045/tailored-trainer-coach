@@ -7,7 +7,7 @@ import { ArrowLeft, ChevronDown, ChevronUp, Info, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
-import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog } from "@/lib/workoutStorage";
+import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog, updateUserStreak } from "@/lib/workoutStorage";
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -208,9 +208,12 @@ const ActiveWorkout = () => {
         // Mark session as completed
         await completeWorkoutSession(sessionId);
         
+        // Update streak
+        await updateUserStreak();
+        
         toast({
           title: "Treino concluído! 🎉",
-          description: "Seu progresso foi salvo com sucesso!",
+          description: "Continue assim para manter sua sequência!",
         });
       } catch (error) {
         console.error("Error saving workout:", error);

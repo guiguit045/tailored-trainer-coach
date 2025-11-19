@@ -6,12 +6,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Calendar as CalendarIcon, Dumbbell, Clock, TrendingUp, LineChart } from "lucide-react";
-import { getWorkoutHistory } from "@/lib/workoutStorage";
+import { getWorkoutHistory, updateUserStreak } from "@/lib/workoutStorage";
 import { format, startOfWeek, endOfWeek, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import ExerciseProgressChart from "@/components/workout/ExerciseProgressChart";
+import StreakIndicator from "@/components/workout/StreakIndicator";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 interface WorkoutSession {
   id: string;
@@ -24,6 +26,7 @@ interface WorkoutSession {
 
 const WorkoutHistory = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [workoutSessions, setWorkoutSessions] = useState<WorkoutSession[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [loading, setLoading] = useState(true);
@@ -31,6 +34,7 @@ const WorkoutHistory = () => {
 
   useEffect(() => {
     loadHistory();
+    updateStreakData();
   }, []);
 
   const loadHistory = async () => {
@@ -41,6 +45,20 @@ const WorkoutHistory = () => {
       console.error("Error loading history:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateStreakData = async () => {
+    try {
+      const result = await updateUserStreak();
+      if (result?.isNewRecord && result.currentStreak > 1) {
+        toast({
+          title: "🏆 Novo Recorde de Sequência!",
+          description: `Você alcançou ${result.currentStreak} dias consecutivos de treino!`,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating streak:", error);
     }
   };
 
@@ -154,6 +172,11 @@ const WorkoutHistory = () => {
       </header>
 
       <main className="max-w-7xl mx-auto py-8 px-4">
+        {/* Streak Indicator */}
+        <div className="mb-6">
+          <StreakIndicator />
+        </div>
+
         <Tabs defaultValue="calendar" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="calendar" className="flex items-center gap-2">

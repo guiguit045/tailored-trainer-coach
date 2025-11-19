@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { QuizData } from "./Quiz";
 import WorkoutTab from "@/components/dashboard/WorkoutTab";
 import DietTab from "@/components/dashboard/DietTab";
+import StreakIndicator from "@/components/workout/StreakIndicator";
 import { getQuizResponses, getActiveWorkoutPlan } from "@/lib/workoutStorage";
 
 const Dashboard = () => {
@@ -215,6 +216,10 @@ const Dashboard = () => {
             </div>
           </div>
         </Card>
+
+        <div className="mb-6">
+          <StreakIndicator />
+        </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 h-auto p-1">

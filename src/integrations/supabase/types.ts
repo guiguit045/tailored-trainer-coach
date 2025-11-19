@@ -58,21 +58,30 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          current_streak: number | null
           id: string
+          last_workout_date: string | null
+          max_streak: number | null
           name: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          current_streak?: number | null
           id?: string
+          last_workout_date?: string | null
+          max_streak?: number | null
           name: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          current_streak?: number | null
           id?: string
+          last_workout_date?: string | null
+          max_streak?: number | null
           name?: string
           updated_at?: string
           user_id?: string
