@@ -7,6 +7,16 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { QuizData, Exercise, Workout } from "@/pages/Quiz";
 import { getCurrentCycleCompletedWorkouts } from "@/lib/workoutStorage";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface WorkoutTabProps {
   quizData: QuizData;
@@ -195,6 +205,8 @@ const generateWorkout = (quizData: QuizData): Exercise[] => {
 const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
   const navigate = useNavigate();
   const [completedWorkouts, setCompletedWorkouts] = useState<string[]>([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingWorkoutIndex, setPendingWorkoutIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const loadCompletedWorkouts = async () => {
@@ -203,6 +215,28 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
     };
     loadCompletedWorkouts();
   }, []);
+
+  const handleStartWorkout = (workoutIdx: number, dayName: string) => {
+    if (completedWorkouts.includes(dayName)) {
+      setPendingWorkoutIndex(workoutIdx);
+      setShowConfirmDialog(true);
+    } else {
+      navigate(`/workout/active?workout=${workoutIdx}`);
+    }
+  };
+
+  const handleConfirmStart = () => {
+    if (pendingWorkoutIndex !== null) {
+      navigate(`/workout/active?workout=${pendingWorkoutIndex}`);
+      setShowConfirmDialog(false);
+      setPendingWorkoutIndex(null);
+    }
+  };
+
+  const handleCancelStart = () => {
+    setShowConfirmDialog(false);
+    setPendingWorkoutIndex(null);
+  };
   
   // Use AI-generated workout if available, otherwise fall back to template
   const hasAIWorkout = quizData.aiWorkoutPlan && quizData.aiWorkoutPlan.length > 0;
@@ -312,7 +346,7 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
                   </AccordionTrigger>
                 <AccordionContent className="px-4 sm:px-6 pb-4 pt-4">
                   <Button
-                    onClick={() => navigate(`/workout/active?workout=${workoutIdx}`)}
+                    onClick={() => handleStartWorkout(workoutIdx, workout.day)}
                     className="w-full mb-4"
                     size="lg"
                   >
@@ -422,6 +456,21 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
           </li>
         </ul>
       </Card>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Treino já concluído</AlertDialogTitle>
+            <AlertDialogDescription>
+              Este treino já foi concluído neste ciclo. Deseja realizá-lo novamente?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelStart}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmStart}>Realizar novamente</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
