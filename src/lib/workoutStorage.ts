@@ -227,3 +227,22 @@ export async function getWorkoutHistory(limit = 10) {
   if (error) throw error;
   return data || [];
 }
+
+// Get completed workouts for today
+export async function getTodayCompletedWorkouts() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const { data, error } = await supabase
+    .from("workout_sessions")
+    .select("day_name, completed_at")
+    .eq("user_id", user.id)
+    .eq("status", "completed")
+    .gte("completed_at", today.toISOString());
+
+  if (error) throw error;
+  return data || [];
+}

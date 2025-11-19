@@ -1,10 +1,12 @@
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Repeat, Timer, Info, Sparkles, ChevronRight, Calendar, Play } from "lucide-react";
+import { Repeat, Timer, Info, Sparkles, ChevronRight, Calendar, Play, CheckCircle2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { QuizData, Exercise, Workout } from "@/pages/Quiz";
+import { getTodayCompletedWorkouts } from "@/lib/workoutStorage";
 
 interface WorkoutTabProps {
   quizData: QuizData;
@@ -192,6 +194,15 @@ const generateWorkout = (quizData: QuizData): Exercise[] => {
 
 const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
   const navigate = useNavigate();
+  const [completedWorkouts, setCompletedWorkouts] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadCompletedWorkouts = async () => {
+      const completed = await getTodayCompletedWorkouts();
+      setCompletedWorkouts(completed.map(w => w.day_name));
+    };
+    loadCompletedWorkouts();
+  }, []);
   
   // Use AI-generated workout if available, otherwise fall back to template
   const hasAIWorkout = quizData.aiWorkoutPlan && quizData.aiWorkoutPlan.length > 0;
@@ -262,28 +273,43 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
       {/* Workout Days Accordion */}
       <div className="space-y-3">
         <Accordion type="single" collapsible className="space-y-3">
-          {workouts.map((workout, workoutIdx) => (
-            <AccordionItem 
-              key={workoutIdx} 
-              value={`day-${workoutIdx}`}
-              className="border-0"
-            >
-              <Card className="overflow-hidden hover:shadow-medium transition-all">
-                <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline [&[data-state=open]]:bg-gradient-hero [&[data-state=open]]:text-primary-foreground">
-                  <div className="flex items-center justify-between w-full pr-4">
-                    <div className="text-left flex-1">
-                      <h4 className="text-base sm:text-lg font-bold mb-1">
-                        {workout.day.split(" - ")[0]}
-                      </h4>
-                      <p className="text-xs sm:text-sm opacity-80">
-                        {workout.day.includes(" - ") ? workout.day.split(" - ")[1] : workout.description}
-                      </p>
+          {workouts.map((workout, workoutIdx) => {
+            const isCompleted = completedWorkouts.includes(workout.day);
+            
+            return (
+              <AccordionItem 
+                key={workoutIdx} 
+                value={`day-${workoutIdx}`}
+                className="border-0"
+              >
+                <Card className="overflow-hidden hover:shadow-medium transition-all">
+                  <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline [&[data-state=open]]:bg-gradient-hero [&[data-state=open]]:text-primary-foreground">
+                    <div className="flex items-center justify-between w-full pr-4">
+                      <div className="text-left flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-base sm:text-lg font-bold mb-1">
+                            {workout.day.split(" - ")[0]}
+                          </h4>
+                          {isCompleted && (
+                            <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-xs sm:text-sm opacity-80">
+                          {workout.day.includes(" - ") ? workout.day.split(" - ")[1] : workout.description}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isCompleted && (
+                          <Badge className="bg-green-500/20 text-green-700 border-green-500/30 text-xs">
+                            Concluído
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-xs">
+                          {workout.exercises.length}
+                        </Badge>
+                      </div>
                     </div>
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      {workout.exercises.length}
-                    </Badge>
-                  </div>
-                </AccordionTrigger>
+                  </AccordionTrigger>
                 <AccordionContent className="px-4 sm:px-6 pb-4 pt-4">
                   <Button
                     onClick={() => navigate(`/workout/active?workout=${workoutIdx}`)}
@@ -367,7 +393,8 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
                 </AccordionContent>
               </Card>
             </AccordionItem>
-          ))}
+          );
+          })}
         </Accordion>
       </div>
 
