@@ -22,9 +22,11 @@ import {
 import { motion } from "framer-motion";
 import { getQuizResponses } from "@/lib/workoutStorage";
 import { supabase } from "@/integrations/supabase/client";
+import AvatarUpload from "@/components/profile/AvatarUpload";
 
 interface ProfileData {
   name: string;
+  avatarUrl?: string;
   age?: string;
   height?: string;
   currentWeight?: string;
@@ -53,19 +55,21 @@ const Profile = () => {
 
   const loadProfile = async () => {
     try {
-      // Get user name from profiles table
+      // Get user name and avatar from profiles table
       const { data: { user } } = await supabase.auth.getUser();
       let userName = "";
+      let avatarUrl = "";
       
       if (user) {
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("name")
+          .select("name, avatar_url")
           .eq("user_id", user.id)
           .single();
         
         if (profileData) {
           userName = profileData.name;
+          avatarUrl = profileData.avatar_url || "";
         }
       }
 
@@ -75,6 +79,7 @@ const Profile = () => {
       if (quizData) {
         setProfile({
           name: userName || quizData.name,
+          avatarUrl: avatarUrl,
           age: quizData.age?.toString(),
           height: quizData.height?.toString(),
           currentWeight: quizData.weight?.toString(),
@@ -98,6 +103,7 @@ const Profile = () => {
           const data = JSON.parse(storedData);
           setProfile({
             name: userName || "Usuário",
+            avatarUrl: avatarUrl,
             ...data,
           });
         }
@@ -107,6 +113,10 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAvatarChange = (url: string | null) => {
+    setProfile(prev => prev ? { ...prev, avatarUrl: url || undefined } : null);
   };
 
   const getGoalLabel = (goal?: string) => {
@@ -191,13 +201,15 @@ const Profile = () => {
           transition={{ duration: 0.4 }}
         >
           <Card className="p-8 mb-6 bg-gradient-card shadow-elegant">
-            <div className="flex items-center gap-6">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <User className="h-12 w-12 text-primary-foreground" />
-              </div>
-              <div className="flex-1">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <AvatarUpload 
+                currentAvatarUrl={profile.avatarUrl}
+                onAvatarChange={handleAvatarChange}
+              />
+              
+              <div className="flex-1 text-center md:text-left">
                 <h2 className="text-3xl font-bold mb-2">{profile.name}</h2>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                   {profile.age && (
                     <Badge variant="secondary" className="text-sm">
                       <Calendar className="h-3 w-3 mr-1" />
