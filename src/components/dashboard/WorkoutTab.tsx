@@ -284,17 +284,15 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
                     </Badge>
                   </div>
                 </AccordionTrigger>
-                <div className="px-4 sm:px-6 pb-4 border-t">
+                <AccordionContent className="px-4 sm:px-6 pb-4 pt-4">
                   <Button
                     onClick={() => navigate(`/workout/active?workout=${workoutIdx}`)}
-                    className="w-full mt-4"
+                    className="w-full mb-4"
                     size="lg"
                   >
                     <Play className="h-5 w-5 mr-2" />
                     Iniciar Treino
                   </Button>
-                </div>
-                <AccordionContent className="px-6 pb-6 pt-4">
                   <div className="space-y-4">
                     {workout.exercises.map((exercise, exerciseIdx) => (
                       <div key={exerciseIdx} className="bg-muted/30 rounded-lg p-4">
