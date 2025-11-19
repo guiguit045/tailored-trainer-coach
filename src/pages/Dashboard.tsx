@@ -3,16 +3,20 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Apple, Settings } from "lucide-react";
+import { Dumbbell, Apple, Settings, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import type { QuizData } from "./Quiz";
 import WorkoutTab from "@/components/dashboard/WorkoutTab";
 import DietTab from "@/components/dashboard/DietTab";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [quizData, setQuizData] = useState<QuizData | null>(null);
+  const [userName, setUserName] = useState<string>("");
   const defaultTab = searchParams.get("tab") || "workout";
 
   useEffect(() => {
@@ -22,7 +26,38 @@ const Dashboard = () => {
       return;
     }
     setQuizData(JSON.parse(storedData));
+
+    // Fetch user profile
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile) {
+          setUserName(profile.name);
+        }
+      }
+    };
+
+    fetchProfile();
   }, [navigate]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Erro ao sair",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      navigate("/auth");
+    }
+  };
 
   if (!quizData) return null;
 
@@ -34,15 +69,25 @@ const Dashboard = () => {
             <h1 className="text-3xl font-bold">FitPro</h1>
             <p className="text-sm opacity-90 mt-1">Seu Personal Trainer Digital</p>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20"
-            onClick={() => navigate("/quiz")}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            Editar Perfil
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20"
+              onClick={() => navigate("/quiz")}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Editar Perfil
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -51,7 +96,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold mb-1">
-                Olá! 👋
+                Olá{userName ? `, ${userName}` : ""}! 👋
               </h2>
               <p className="text-muted-foreground">
                 Seu objetivo: <span className="font-semibold text-foreground">
