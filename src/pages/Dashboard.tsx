@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Apple, Settings, LogOut } from "lucide-react";
+import { Dumbbell, Apple, Settings, LogOut, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -161,6 +161,15 @@ const Dashboard = () => {
             <p className="text-sm opacity-90 mt-1">Seu Personal Trainer Digital</p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20"
+              onClick={() => navigate("/workout/history")}
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Histórico
+            </Button>
             <Button 
               variant="outline" 
               size="sm"

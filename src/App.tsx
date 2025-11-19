@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Quiz from "./pages/Quiz";
 import Dashboard from "./pages/Dashboard";
 import ActiveWorkout from "./pages/ActiveWorkout";
+import WorkoutHistory from "./pages/WorkoutHistory";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/workout/active" element={<ProtectedRoute><ActiveWorkout /></ProtectedRoute>} />
+          <Route path="/workout/history" element={<ProtectedRoute><WorkoutHistory /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
