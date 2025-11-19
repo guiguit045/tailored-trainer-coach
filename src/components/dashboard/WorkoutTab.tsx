@@ -6,7 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { QuizData, Exercise, Workout } from "@/pages/Quiz";
-import { getTodayCompletedWorkouts } from "@/lib/workoutStorage";
+import { getCurrentCycleCompletedWorkouts } from "@/lib/workoutStorage";
 
 interface WorkoutTabProps {
   quizData: QuizData;
@@ -198,7 +198,7 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
 
   useEffect(() => {
     const loadCompletedWorkouts = async () => {
-      const completed = await getTodayCompletedWorkouts();
+      const completed = await getCurrentCycleCompletedWorkouts();
       setCompletedWorkouts(completed.map(w => w.day_name));
     };
     loadCompletedWorkouts();
