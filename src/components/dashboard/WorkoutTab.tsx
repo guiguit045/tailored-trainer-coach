@@ -1,20 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Repeat, Timer, Info } from "lucide-react";
-import type { QuizData } from "@/pages/Quiz";
+import { Repeat, Timer, Info, Sparkles } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { QuizData, Exercise, Workout } from "@/pages/Quiz";
 
 interface WorkoutTabProps {
   quizData: QuizData;
-}
-
-interface Exercise {
-  name: string;
-  sets: string;
-  reps: string;
-  rest: string;
-  tip: string;
-  why: string;
-  variations: string[];
 }
 
 const generateWorkout = (quizData: QuizData): Exercise[] => {
@@ -198,15 +189,108 @@ const generateWorkout = (quizData: QuizData): Exercise[] => {
 };
 
 const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
-  const workout = generateWorkout(quizData);
+  // Use AI-generated workout if available, otherwise fall back to template
+  const hasAIWorkout = quizData.aiWorkoutPlan && quizData.aiWorkoutPlan.length > 0;
+  const fallbackWorkout: Workout[] = [
+    {
+      day: "Treino A - Corpo Todo",
+      description: "Plano padrão baseado em seu perfil",
+      exercises: generateWorkout(quizData)
+    }
+  ];
+  const workouts = hasAIWorkout ? quizData.aiWorkoutPlan! : fallbackWorkout;
+
+  const renderExercise = (exercise: Exercise, exerciseIdx: number) => (
+    <Card key={exerciseIdx} className="p-6 hover:shadow-medium transition-all">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h4 className="text-lg font-bold mb-1">{exercise.name}</h4>
+          <Badge variant="outline" className="text-xs">
+            Exercício {exerciseIdx + 1}
+          </Badge>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <Repeat className="h-4 w-4 text-primary" />
+          <div>
+            <p className="text-xs text-muted-foreground">Séries</p>
+            <p className="font-semibold">{exercise.sets}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Repeat className="h-4 w-4 text-secondary" />
+          <div>
+            <p className="text-xs text-muted-foreground">Repetições</p>
+            <p className="font-semibold">{exercise.reps}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Timer className="h-4 w-4 text-accent" />
+          <div>
+            <p className="text-xs text-muted-foreground">Descanso</p>
+            <p className="font-semibold">{exercise.rest}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3 border-t pt-4">
+        <div className="bg-muted/50 p-3 rounded-lg">
+          <div className="flex items-start gap-2">
+            <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-primary mb-1">Dica de Execução</p>
+              <p className="text-sm">{exercise.tip}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-accent/10 p-3 rounded-lg">
+          <div className="flex items-start gap-2">
+            <Info className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-accent mb-1">Por que este exercício?</p>
+              <p className="text-sm">{exercise.why}</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-2">Variações</p>
+          <div className="flex flex-wrap gap-2">
+            {exercise.variations.map((variation, i) => (
+              <Badge key={i} variant="secondary" className="text-xs">
+                {variation}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
 
   return (
     <div className="space-y-4">
       <Card className="p-6 bg-gradient-card shadow-medium">
-        <h3 className="text-xl font-bold mb-2">Seu Treino Atual</h3>
-        <p className="text-sm text-muted-foreground">
-          Plano personalizado baseado em seu perfil e objetivos
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+              {hasAIWorkout && <Sparkles className="h-5 w-5 text-accent-green" />}
+              Seu Treino Personalizado
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {hasAIWorkout 
+                ? "Plano criado por IA baseado em todas as suas informações" 
+                : "Plano personalizado baseado em seu perfil e objetivos"}
+            </p>
+          </div>
+          {hasAIWorkout && (
+            <Badge className="bg-accent-green text-white">
+              IA Personalizado
+            </Badge>
+          )}
+        </div>
       </Card>
 
       {quizData.bodyAnalysis && (
@@ -230,75 +314,41 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
         </Card>
       )}
 
-      {workout.map((exercise, index) => (
-        <Card key={index} className="p-6 hover:shadow-medium transition-all">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h4 className="text-lg font-bold mb-1">{exercise.name}</h4>
-              <Badge variant="outline" className="text-xs">
-                Exercício {index + 1}
-              </Badge>
-            </div>
-          </div>
+      {workouts.length > 1 ? (
+        <Tabs defaultValue="0" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 h-auto p-1">
+            {workouts.map((workout, idx) => (
+              <TabsTrigger 
+                key={idx} 
+                value={idx.toString()}
+                className="py-3 data-[state=active]:bg-gradient-hero data-[state=active]:text-primary-foreground"
+              >
+                {workout.day.split(" - ")[0]}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <Repeat className="h-4 w-4 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">Séries</p>
-                <p className="font-semibold">{exercise.sets}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Repeat className="h-4 w-4 text-secondary" />
-              <div>
-                <p className="text-xs text-muted-foreground">Repetições</p>
-                <p className="font-semibold">{exercise.reps}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Timer className="h-4 w-4 text-accent" />
-              <div>
-                <p className="text-xs text-muted-foreground">Descanso</p>
-                <p className="font-semibold">{exercise.rest}</p>
-              </div>
-            </div>
-          </div>
+          {workouts.map((workout, workoutIdx) => (
+            <TabsContent key={workoutIdx} value={workoutIdx.toString()} className="space-y-4">
+              <Card className="p-6 bg-gradient-accent">
+                <h4 className="font-bold text-lg mb-1">{workout.day}</h4>
+                <p className="text-sm text-muted-foreground">{workout.description}</p>
+              </Card>
 
-          <div className="space-y-3 border-t pt-4">
-            <div className="bg-muted/50 p-3 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-primary mb-1">Dica de Execução</p>
-                  <p className="text-sm">{exercise.tip}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-accent/10 p-3 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-accent mb-1">Por que este exercício?</p>
-                  <p className="text-sm">{exercise.why}</p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-2">Variações</p>
-              <div className="flex flex-wrap gap-2">
-                {exercise.variations.map((variation, i) => (
-                  <Badge key={i} variant="secondary" className="text-xs">
-                    {variation}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
+              {workout.exercises.map((exercise, exerciseIdx) => 
+                renderExercise(exercise, exerciseIdx)
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : (
+        // Single workout display (fallback)
+        <div className="space-y-4">
+          {workouts[0].exercises.map((exercise, exerciseIdx) => 
+            renderExercise(exercise, exerciseIdx)
+          )}
+        </div>
+      )}
 
       <Card className="p-6 bg-gradient-accent text-accent-foreground">
         <h4 className="font-bold mb-2">💡 Lembre-se</h4>

@@ -11,6 +11,22 @@ import { toast } from "sonner";
 import { celebrateAnswer, celebrateCompletion } from "@/lib/confetti";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface Exercise {
+  name: string;
+  sets: string;
+  reps: string;
+  rest: string;
+  tip: string;
+  why: string;
+  variations: string[];
+}
+
+export interface Workout {
+  day: string;
+  description: string;
+  exercises: Exercise[];
+}
+
 export interface QuizData {
   age: string;
   height: string;
@@ -57,6 +73,7 @@ export interface QuizData {
   commitmentLevel: string;
   bodyPhotos?: string[];
   bodyAnalysis?: string;
+  aiWorkoutPlan?: Workout[];
 }
 
 interface Question {
@@ -491,6 +508,30 @@ const Quiz = () => {
     }
   };
 
+  const generatePersonalizedWorkout = async (bodyAnalysis: string | null) => {
+    toast.loading("Criando seu treino personalizado com IA...");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-personalized-workout", {
+        body: { 
+          quizData: quizData,
+          bodyAnalysis: bodyAnalysis
+        }
+      });
+
+      toast.dismiss();
+
+      if (error) throw error;
+
+      toast.success("Treino personalizado criado!");
+      return data.workoutPlan.workouts;
+    } catch (error) {
+      console.error("Error generating workout:", error);
+      toast.error("Erro ao criar treino. Usando plano padrão.");
+      return null;
+    }
+  };
+
   const handleNext = async () => {
     if (currentIndex < totalQuestions - 1) {
       celebrateAnswer();
@@ -503,15 +544,19 @@ const Quiz = () => {
         bodyAnalysis = await analyzePhotos();
       }
 
+      // Generate personalized workout with AI
+      const aiWorkoutPlan = await generatePersonalizedWorkout(bodyAnalysis);
+
       const finalData = {
         ...quizData,
         bodyPhotos: uploadedPhotos,
-        bodyAnalysis: bodyAnalysis
+        bodyAnalysis: bodyAnalysis,
+        aiWorkoutPlan: aiWorkoutPlan
       };
 
       localStorage.setItem("quizData", JSON.stringify(finalData));
       celebrateCompletion();
-      toast.success("Perfil completo! Gerando seu plano personalizado...");
+      toast.success("Seu plano personalizado está pronto!");
       setTimeout(() => navigate("/dashboard"), 1000);
     }
   };
