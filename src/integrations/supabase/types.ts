@@ -184,6 +184,33 @@ export type Database = {
         }
         Relationships: []
       }
+      water_intake: {
+        Row: {
+          amount_ml: number
+          created_at: string
+          id: string
+          intake_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_ml?: number
+          created_at?: string
+          id?: string
+          intake_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_ml?: number
+          created_at?: string
+          id?: string
+          intake_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       workout_plans: {
         Row: {
           created_at: string

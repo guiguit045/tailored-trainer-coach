@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coffee, Sun, Moon, Apple, Info, Check } from "lucide-react";
+import { Coffee, Sun, Moon, Apple, Info, Check, Droplet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getMealCompletions, toggleMealCompletion } from "@/lib/workoutStorage";
+import { getMealCompletions, toggleMealCompletion, getWaterIntake, addWaterIntake } from "@/lib/workoutStorage";
 import { celebrateCompletion } from "@/lib/confetti";
 import type { QuizData } from "@/pages/Quiz";
 
@@ -135,10 +135,18 @@ const DietTab = ({ quizData }: DietTabProps) => {
   const [completedMeals, setCompletedMeals] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<Record<number, boolean>>({});
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
+  const [waterIntake, setWaterIntake] = useState(0);
+  const [isLoadingWater, setIsLoadingWater] = useState(false);
   
   useEffect(() => {
     loadMealCompletions();
+    loadWaterIntake();
   }, []);
+
+  const loadWaterIntake = async () => {
+    const intake = await getWaterIntake();
+    setWaterIntake(intake);
+  };
 
   const loadMealCompletions = async () => {
     const completed = await getMealCompletions();
@@ -194,6 +202,35 @@ const DietTab = ({ quizData }: DietTabProps) => {
 
   const caloriesProgress = (consumedCalories / totalCalories) * 100;
 
+  const handleAddWater = async () => {
+    setIsLoadingWater(true);
+    try {
+      const newAmount = await addWaterIntake(200);
+      setWaterIntake(newAmount);
+      
+      if (newAmount >= 2000 && waterIntake < 2000) {
+        celebrateCompletion();
+        toast({
+          title: "🎉 Meta de água atingida!",
+          description: "Você bebeu 2 litros de água hoje!",
+        });
+      } else {
+        toast({
+          title: "Água registrada! 💧",
+          description: `Você bebeu ${newAmount}ml hoje. Continue hidratado!`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível registrar a água",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingWater(false);
+    }
+  };
+
   // Trigger confetti when goal is reached
   useEffect(() => {
     if (caloriesProgress >= 100 && !hasTriggeredConfetti && completedMeals.length > 0) {
@@ -205,6 +242,10 @@ const DietTab = ({ quizData }: DietTabProps) => {
       });
     }
   }, [caloriesProgress, hasTriggeredConfetti, completedMeals.length]);
+
+  const waterGoal = 2000; // 2L in ml
+  const waterProgress = (waterIntake / waterGoal) * 100;
+  const glassCount = Math.floor(waterIntake / 200);
 
   return (
     <div className="space-y-4">
@@ -253,6 +294,59 @@ const DietTab = ({ quizData }: DietTabProps) => {
           <div className="mt-3">
             <Badge variant="destructive" className="text-xs">
               ⚠️ Evitar: {quizData.allergiesList}
+            </Badge>
+          </div>
+        )}
+      </Card>
+
+      {/* Water Intake Card */}
+      <Card className="p-6 bg-gradient-card shadow-medium overflow-hidden">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-xl font-bold">Água Hoje</h3>
+            <p className="text-sm text-muted-foreground">
+              {waterIntake}ml / {waterGoal}ml
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-primary">{Math.round(waterProgress)}%</div>
+            <p className="text-xs text-muted-foreground">
+              {glassCount} copos
+            </p>
+          </div>
+        </div>
+
+        {/* Glass Visual */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="relative w-20 h-32 border-4 border-primary rounded-b-3xl overflow-hidden bg-muted/20">
+            {/* Water fill */}
+            <div 
+              className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-500 to-blue-400 transition-all duration-500 ease-out"
+              style={{ height: `${Math.min(waterProgress, 100)}%` }}
+            >
+              {waterProgress > 20 && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Droplet className="h-6 w-6 text-white/80" />
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <Button
+            onClick={handleAddWater}
+            disabled={isLoadingWater}
+            size="lg"
+            className="flex-1"
+          >
+            <Droplet className="h-5 w-5 mr-2" />
+            Bebi um copo (200ml)
+          </Button>
+        </div>
+
+        {waterProgress >= 100 && (
+          <div className="text-center">
+            <Badge variant="default" className="bg-blue-600">
+              🎉 Meta de água atingida!
             </Badge>
           </div>
         )}
