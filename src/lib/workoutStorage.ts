@@ -228,6 +228,120 @@ export async function getWorkoutHistory(limit = 10) {
   return data || [];
 }
 
+// Calculate current streak
+export async function calculateStreak() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { currentStreak: 0, maxStreak: 0 };
+
+  // Get all completed workouts ordered by date
+  const { data: sessions, error } = await supabase
+    .from("workout_sessions")
+    .select("completed_at")
+    .eq("user_id", user.id)
+    .eq("status", "completed")
+    .not("completed_at", "is", null)
+    .order("completed_at", { ascending: false });
+
+  if (error || !sessions || sessions.length === 0) {
+    return { currentStreak: 0, maxStreak: 0 };
+  }
+
+  // Get unique dates
+  const workoutDates = [...new Set(
+    sessions.map(s => new Date(s.completed_at!).toDateString())
+  )].map(d => new Date(d));
+
+  // Calculate current streak
+  let currentStreak = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  // Check if there's a workout today or yesterday to start counting
+  const lastWorkoutDate = new Date(workoutDates[0]);
+  lastWorkoutDate.setHours(0, 0, 0, 0);
+
+  if (lastWorkoutDate.getTime() === today.getTime() || 
+      lastWorkoutDate.getTime() === yesterday.getTime()) {
+    
+    currentStreak = 1;
+    let checkDate = new Date(lastWorkoutDate);
+
+    for (let i = 1; i < workoutDates.length; i++) {
+      const prevDate = new Date(workoutDates[i]);
+      prevDate.setHours(0, 0, 0, 0);
+      
+      const expectedDate = new Date(checkDate);
+      expectedDate.setDate(expectedDate.getDate() - 1);
+
+      if (prevDate.getTime() === expectedDate.getTime()) {
+        currentStreak++;
+        checkDate = prevDate;
+      } else {
+        break;
+      }
+    }
+  }
+
+  // Calculate max streak
+  let maxStreak = 0;
+  let tempStreak = 1;
+
+  for (let i = 1; i < workoutDates.length; i++) {
+    const currentDate = new Date(workoutDates[i]);
+    currentDate.setHours(0, 0, 0, 0);
+    
+    const prevDate = new Date(workoutDates[i - 1]);
+    prevDate.setHours(0, 0, 0, 0);
+    
+    const dayDiff = Math.floor((prevDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (dayDiff === 1) {
+      tempStreak++;
+    } else {
+      maxStreak = Math.max(maxStreak, tempStreak);
+      tempStreak = 1;
+    }
+  }
+  maxStreak = Math.max(maxStreak, tempStreak);
+
+  return { currentStreak, maxStreak };
+}
+
+// Update user streak in profile
+export async function updateUserStreak() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { currentStreak, maxStreak } = await calculateStreak();
+
+  // Get current max_streak from profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("max_streak")
+    .eq("user_id", user.id)
+    .single();
+
+  const currentMaxStreak = profile?.max_streak || 0;
+  const isNewRecord = maxStreak > currentMaxStreak;
+
+  // Update profile
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      current_streak: currentStreak,
+      max_streak: Math.max(maxStreak, currentMaxStreak),
+      last_workout_date: new Date().toISOString().split('T')[0],
+    })
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+
+  return { currentStreak, maxStreak, isNewRecord };
+}
+
 // Get completed workouts in current 7-day cycle
 export async function getCurrentCycleCompletedWorkouts() {
   const { data: { user } } = await supabase.auth.getUser();
