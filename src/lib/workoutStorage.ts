@@ -381,3 +381,71 @@ export async function getCurrentCycleCompletedWorkouts() {
 
   return cycleWorkouts;
 }
+
+// Meal completions functions
+export const getMealCompletions = async (date?: Date): Promise<number[]> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const targetDate = date || new Date();
+    const dateString = targetDate.toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('meal_completions')
+      .select('meal_index')
+      .eq('user_id', user.id)
+      .eq('meal_date', dateString);
+
+    if (error) throw error;
+    
+    return data?.map(item => item.meal_index) || [];
+  } catch (error) {
+    console.error("Error getting meal completions:", error);
+    return [];
+  }
+};
+
+export const toggleMealCompletion = async (mealIndex: number): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Check if already completed
+    const { data: existing } = await supabase
+      .from('meal_completions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('meal_date', today)
+      .eq('meal_index', mealIndex)
+      .single();
+
+    if (existing) {
+      // Remove completion
+      const { error } = await supabase
+        .from('meal_completions')
+        .delete()
+        .eq('id', existing.id);
+      
+      if (error) throw error;
+      return false;
+    } else {
+      // Add completion
+      const { error } = await supabase
+        .from('meal_completions')
+        .insert({
+          user_id: user.id,
+          meal_date: today,
+          meal_index: mealIndex
+        });
+      
+      if (error) throw error;
+      return true;
+    }
+  } catch (error) {
+    console.error("Error toggling meal completion:", error);
+    throw error;
+  }
+};

@@ -55,6 +55,30 @@ export type Database = {
           },
         ]
       }
+      meal_completions: {
+        Row: {
+          created_at: string
+          id: string
+          meal_date: string
+          meal_index: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meal_date: string
+          meal_index: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meal_date?: string
+          meal_index?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
