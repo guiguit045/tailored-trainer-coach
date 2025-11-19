@@ -3,6 +3,16 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ArrowLeft, ChevronDown, ChevronUp, Info, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -24,8 +34,10 @@ const ActiveWorkout = () => {
   const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [setData, setSetData] = useState<Record<number, Array<{ weight: string; reps: string }>>>({});
   const [setsCount, setSetsCount] = useState<Record<number, number>>({});
+  const [originalSetsCount, setOriginalSetsCount] = useState<Record<number, number>>({});
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [workoutPlanId, setWorkoutPlanId] = useState<string | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ exerciseIdx: number; setIdx: number } | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -78,6 +90,7 @@ const ActiveWorkout = () => {
         setCompletedSets(initialSets);
         setSetData(initialData);
         setSetsCount(initialCounts);
+        setOriginalSetsCount(initialCounts);
       } else {
         navigate("/dashboard?tab=workout");
       }
@@ -185,18 +198,10 @@ const ActiveWorkout = () => {
     });
   };
 
-  const removeSet = (exerciseIdx: number, setIdx: number) => {
-    const currentCount = setsCount[exerciseIdx] || 0;
+  const confirmRemoveSet = () => {
+    if (!deleteConfirmation) return;
     
-    // Don't allow removing if there's only one set
-    if (currentCount <= 1) {
-      toast({
-        title: "Não é possível remover",
-        description: "É necessário pelo menos uma série por exercício",
-        variant: "destructive",
-      });
-      return;
-    }
+    const { exerciseIdx, setIdx } = deleteConfirmation;
 
     setSetsCount((prev) => ({
       ...prev,
@@ -219,6 +224,8 @@ const ActiveWorkout = () => {
       title: "Série removida",
       description: "Série excluída do exercício",
     });
+    
+    setDeleteConfirmation(null);
   };
 
   const finishWorkout = async () => {
@@ -410,14 +417,17 @@ const ActiveWorkout = () => {
                               <span className="text-xs text-muted-foreground whitespace-nowrap">Rep.</span>
                             </div>
 
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
-                              onClick={() => removeSet(exerciseIdx, setIdx)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {/* Only show delete button for dynamically added sets */}
+                            {setIdx >= (originalSetsCount[exerciseIdx] || 0) && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
+                                onClick={() => setDeleteConfirmation({ exerciseIdx, setIdx })}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         );
                       })}
@@ -456,6 +466,24 @@ const ActiveWorkout = () => {
           REGISTRAR A PRÓXIMA SÉRIE
         </Button>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirmation} onOpenChange={(open) => !open && setDeleteConfirmation(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir série?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta série? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveSet} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
