@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Repeat, Timer, Info, Sparkles, ChevronRight, Calendar, Play, CheckCircle2 } from "lucide-react";
+import { Repeat, Timer, Info, Sparkles, ChevronRight, Calendar, Play, CheckCircle2, BarChart3 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -431,6 +431,22 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
           })}
         </Accordion>
       </div>
+
+      {/* Quick Access to History */}
+      <Card className="p-6 bg-gradient-card hover:shadow-medium transition-all cursor-pointer" onClick={() => navigate("/workout/history")}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <BarChart3 className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h4 className="font-bold">Ver Histórico Completo</h4>
+              <p className="text-sm text-muted-foreground">Acompanhe sua evolução e progresso</p>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </div>
+      </Card>
 
       {/* Tips Card */}
       <Card className="p-6 bg-gradient-accent">
