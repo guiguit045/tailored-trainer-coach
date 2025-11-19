@@ -180,26 +180,67 @@ const DietTab = ({ quizData }: DietTabProps) => {
   const completedCount = completedMeals.length;
   const totalMeals = diet.length;
 
+  // Calculate consumed calories
+  const consumedCalories = diet.reduce((sum, meal, index) => {
+    if (completedMeals.includes(index)) {
+      const cals = parseInt(meal.calories.match(/\d+/)?.[0] || "0");
+      return sum + cals;
+    }
+    return sum;
+  }, 0);
+
+  const caloriesProgress = (consumedCalories / totalCalories) * 100;
+
   return (
     <div className="space-y-4">
-      <Card className="p-6 bg-gradient-card shadow-medium">
-        <h3 className="text-xl font-bold mb-2">Seu Plano Alimentar</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Dieta personalizada baseada em suas preferências e objetivo
-        </p>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="outline" className="text-primary">
-            Total diário: ~{totalCalories} kcal
-          </Badge>
-          <Badge variant={completedCount === totalMeals ? "default" : "secondary"}>
-            {completedCount}/{totalMeals} refeições hoje
-          </Badge>
-          {quizData.allergies === "yes" && (
+      {/* Calories Progress Bar */}
+      <Card className="p-6 bg-gradient-card shadow-medium overflow-hidden">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-xl font-bold">Calorias de Hoje</h3>
+            <p className="text-sm text-muted-foreground">
+              {consumedCalories} / {totalCalories} kcal
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-primary">{Math.round(caloriesProgress)}%</div>
+            <p className="text-xs text-muted-foreground">
+              {completedCount}/{totalMeals} refeições
+            </p>
+          </div>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="relative h-4 bg-muted rounded-full overflow-hidden">
+          <div
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out rounded-full"
+            style={{ width: `${Math.min(caloriesProgress, 100)}%` }}
+          >
+            {caloriesProgress > 10 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xs font-bold text-primary-foreground">
+                  {consumedCalories} kcal
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {caloriesProgress >= 100 && (
+          <div className="mt-3 text-center">
+            <Badge variant="default" className="bg-green-600">
+              🎉 Meta de calorias atingida!
+            </Badge>
+          </div>
+        )}
+        
+        {quizData.allergies === "yes" && (
+          <div className="mt-3">
             <Badge variant="destructive" className="text-xs">
               ⚠️ Evitar: {quizData.allergiesList}
             </Badge>
-          )}
-        </div>
+          </div>
+        )}
       </Card>
 
       {diet.map((meal, index) => {
