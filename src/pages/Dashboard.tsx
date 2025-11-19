@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,9 @@ import DietTab from "@/components/dashboard/DietTab";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [quizData, setQuizData] = useState<QuizData | null>(null);
+  const defaultTab = searchParams.get("tab") || "workout";
 
   useEffect(() => {
     const storedData = localStorage.getItem("quizData");
@@ -68,7 +70,7 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        <Tabs defaultValue="workout" className="space-y-6">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 h-auto p-1">
             <TabsTrigger value="workout" className="py-3 data-[state=active]:bg-gradient-hero data-[state=active]:text-primary-foreground">
               <Dumbbell className="mr-2 h-5 w-5" />

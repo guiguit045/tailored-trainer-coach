@@ -577,7 +577,7 @@ const Quiz = () => {
       localStorage.setItem("quizData", JSON.stringify(finalData));
       celebrateCompletion();
       toast.success("Seu plano personalizado está pronto!");
-      setTimeout(() => navigate("/dashboard"), 1000);
+      setTimeout(() => navigate("/dashboard?tab=workout"), 1000);
     }
   };
 
