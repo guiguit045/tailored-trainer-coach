@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Coffee, Sun, Moon, Apple, Info, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getMealCompletions, toggleMealCompletion } from "@/lib/workoutStorage";
+import { celebrateCompletion } from "@/lib/confetti";
 import type { QuizData } from "@/pages/Quiz";
 
 interface DietTabProps {
@@ -133,6 +134,7 @@ const DietTab = ({ quizData }: DietTabProps) => {
   const diet = generateDiet(quizData);
   const [completedMeals, setCompletedMeals] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<Record<number, boolean>>({});
+  const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
   
   useEffect(() => {
     loadMealCompletions();
@@ -156,6 +158,7 @@ const DietTab = ({ quizData }: DietTabProps) => {
         });
       } else {
         setCompletedMeals(prev => prev.filter(idx => idx !== mealIndex));
+        setHasTriggeredConfetti(false); // Reset confetti flag when uncompleting
         toast({
           title: "Registro removido",
           description: "Refeição desmarcada",
@@ -190,6 +193,18 @@ const DietTab = ({ quizData }: DietTabProps) => {
   }, 0);
 
   const caloriesProgress = (consumedCalories / totalCalories) * 100;
+
+  // Trigger confetti when goal is reached
+  useEffect(() => {
+    if (caloriesProgress >= 100 && !hasTriggeredConfetti && completedMeals.length > 0) {
+      celebrateCompletion();
+      setHasTriggeredConfetti(true);
+      toast({
+        title: "🎉 Parabéns! Meta atingida!",
+        description: "Você completou todas as calorias do dia!",
+      });
+    }
+  }, [caloriesProgress, hasTriggeredConfetti, completedMeals.length]);
 
   return (
     <div className="space-y-4">
