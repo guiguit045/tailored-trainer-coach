@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Repeat, Timer, Info, Sparkles } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Repeat, Timer, Info, Sparkles, ChevronRight, Calendar } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import type { QuizData, Exercise, Workout } from "@/pages/Quiz";
 
 interface WorkoutTabProps {
@@ -193,120 +194,61 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
   const hasAIWorkout = quizData.aiWorkoutPlan && quizData.aiWorkoutPlan.length > 0;
   const fallbackWorkout: Workout[] = [
     {
-      day: "Treino A - Corpo Todo",
-      description: "Plano padrão baseado em seu perfil",
+      day: "Treino Completo",
+      description: "Treino de corpo inteiro para iniciantes",
       exercises: generateWorkout(quizData)
     }
   ];
   const workouts = hasAIWorkout ? quizData.aiWorkoutPlan! : fallbackWorkout;
 
-  const renderExercise = (exercise: Exercise, exerciseIdx: number) => (
-    <Card key={exerciseIdx} className="p-6 hover:shadow-medium transition-all">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h4 className="text-lg font-bold mb-1">{exercise.name}</h4>
-          <Badge variant="outline" className="text-xs">
-            Exercício {exerciseIdx + 1}
-          </Badge>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="flex items-center gap-2">
-          <Repeat className="h-4 w-4 text-primary" />
-          <div>
-            <p className="text-xs text-muted-foreground">Séries</p>
-            <p className="font-semibold">{exercise.sets}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Repeat className="h-4 w-4 text-secondary" />
-          <div>
-            <p className="text-xs text-muted-foreground">Repetições</p>
-            <p className="font-semibold">{exercise.reps}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Timer className="h-4 w-4 text-accent" />
-          <div>
-            <p className="text-xs text-muted-foreground">Descanso</p>
-            <p className="font-semibold">{exercise.rest}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-3 border-t pt-4">
-        <div className="bg-muted/50 p-3 rounded-lg">
-          <div className="flex items-start gap-2">
-            <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-semibold text-primary mb-1">Dica de Execução</p>
-              <p className="text-sm">{exercise.tip}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-accent/10 p-3 rounded-lg">
-          <div className="flex items-start gap-2">
-            <Info className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-semibold text-accent mb-1">Por que este exercício?</p>
-              <p className="text-sm">{exercise.why}</p>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground mb-2">Variações</p>
-          <div className="flex flex-wrap gap-2">
-            {exercise.variations.map((variation, i) => (
-              <Badge key={i} variant="secondary" className="text-xs">
-                {variation}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-
   return (
-    <div className="space-y-4">
-      <Card className="p-6 bg-gradient-card shadow-medium">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-              {hasAIWorkout && <Sparkles className="h-5 w-5 text-accent-green" />}
-              Seu Treino Personalizado
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {hasAIWorkout 
-                ? "Plano criado por IA baseado em todas as suas informações" 
-                : "Plano personalizado baseado em seu perfil e objetivos"}
-            </p>
+    <div className="space-y-6">
+      {/* Header Card with Plan Info */}
+      <Card className="overflow-hidden bg-gradient-hero text-primary-foreground shadow-elegant">
+        <div className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                {hasAIWorkout && <Sparkles className="h-6 w-6" />}
+                {quizData.mainGoal === "weight-loss" && "Emagrecimento"}
+                {quizData.mainGoal === "muscle-gain" && "Fortalecimento Muscular"}
+                {quizData.mainGoal === "conditioning" && "Condicionamento Físico"}
+                {quizData.mainGoal === "health" && "Saúde Geral"}
+                {quizData.mainGoal === "endurance" && "Resistência"}
+              </h3>
+              <p className="text-sm opacity-90 flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                {workouts.length === 1 ? "Treino Completo" : `${workouts.length} Dias de Treino`}
+              </p>
+            </div>
+            {hasAIWorkout && (
+              <Badge className="bg-white/20 text-primary-foreground border-white/30">
+                IA Personalizado
+              </Badge>
+            )}
           </div>
-          {hasAIWorkout && (
-            <Badge className="bg-accent-green text-white">
-              IA Personalizado
-            </Badge>
-          )}
+          <p className="text-sm opacity-90">
+            {hasAIWorkout 
+              ? "Plano criado por IA baseado em todas as suas informações" 
+              : "Plano personalizado baseado em seu perfil e objetivos"}
+          </p>
         </div>
       </Card>
 
       {quizData.bodyAnalysis && (
-        <Card className="p-6 bg-gradient-hero text-primary-foreground shadow-elegant">
+        <Card className="p-6 bg-gradient-accent shadow-medium">
           <div className="flex items-start gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-              <Info className="h-5 w-5" />
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h4 className="font-bold text-lg mb-1">✨ Análise por IA do seu corpo</h4>
-              <p className="text-sm opacity-90">
+              <h4 className="font-bold text-lg mb-1">Análise por IA do seu corpo</h4>
+              <p className="text-sm text-muted-foreground">
                 Baseado nas fotos que você enviou
               </p>
             </div>
           </div>
-          <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+          <div className="bg-muted/50 p-4 rounded-lg">
             <p className="text-sm whitespace-pre-wrap leading-relaxed">
               {quizData.bodyAnalysis}
             </p>
@@ -314,49 +256,132 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
         </Card>
       )}
 
-      {workouts.length > 1 ? (
-        <Tabs defaultValue="0" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 h-auto p-1">
-            {workouts.map((workout, idx) => (
-              <TabsTrigger 
-                key={idx} 
-                value={idx.toString()}
-                className="py-3 data-[state=active]:bg-gradient-hero data-[state=active]:text-primary-foreground"
-              >
-                {workout.day.split(" - ")[0]}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
+      {/* Workout Days Accordion */}
+      <div className="space-y-3">
+        <Accordion type="single" collapsible className="space-y-3">
           {workouts.map((workout, workoutIdx) => (
-            <TabsContent key={workoutIdx} value={workoutIdx.toString()} className="space-y-4">
-              <Card className="p-6 bg-gradient-accent">
-                <h4 className="font-bold text-lg mb-1">{workout.day}</h4>
-                <p className="text-sm text-muted-foreground">{workout.description}</p>
+            <AccordionItem 
+              key={workoutIdx} 
+              value={`day-${workoutIdx}`}
+              className="border-0"
+            >
+              <Card className="overflow-hidden hover:shadow-medium transition-all">
+                <AccordionTrigger className="px-6 py-4 hover:no-underline [&[data-state=open]]:bg-gradient-hero [&[data-state=open]]:text-primary-foreground">
+                  <div className="flex items-center justify-between w-full pr-4">
+                    <div className="text-left">
+                      <h4 className="text-lg font-bold mb-1">
+                        {workout.day.split(" - ")[0]}
+                      </h4>
+                      <p className="text-sm opacity-80">
+                        {workout.day.includes(" - ") ? workout.day.split(" - ")[1] : workout.description}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="ml-4">
+                      {workout.exercises.length} exercícios
+                    </Badge>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-6 pt-4">
+                  <div className="space-y-4">
+                    {workout.exercises.map((exercise, exerciseIdx) => (
+                      <div key={exerciseIdx} className="bg-muted/30 rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h5 className="font-bold mb-1">{exercise.name}</h5>
+                            <Badge variant="secondary" className="text-xs">
+                              Exercício {exerciseIdx + 1}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-3 mb-4">
+                          <div className="flex items-center gap-2">
+                            <Repeat className="h-4 w-4 text-primary" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Séries</p>
+                              <p className="font-semibold text-sm">{exercise.sets}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Repeat className="h-4 w-4 text-secondary" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Reps</p>
+                              <p className="font-semibold text-sm">{exercise.reps}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Timer className="h-4 w-4 text-accent" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Descanso</p>
+                              <p className="font-semibold text-sm">{exercise.rest}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="bg-primary/5 p-3 rounded-lg border border-primary/10">
+                            <div className="flex items-start gap-2">
+                              <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs font-semibold text-primary mb-1">Dica de Execução</p>
+                                <p className="text-xs">{exercise.tip}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-accent/5 p-3 rounded-lg border border-accent/10">
+                            <div className="flex items-start gap-2">
+                              <Info className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs font-semibold text-accent mb-1">Por que este exercício?</p>
+                                <p className="text-xs">{exercise.why}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground mb-2">Variações</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {exercise.variations.map((variation, i) => (
+                                <Badge key={i} variant="outline" className="text-xs">
+                                  {variation}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
               </Card>
-
-              {workout.exercises.map((exercise, exerciseIdx) => 
-                renderExercise(exercise, exerciseIdx)
-              )}
-            </TabsContent>
+            </AccordionItem>
           ))}
-        </Tabs>
-      ) : (
-        // Single workout display (fallback)
-        <div className="space-y-4">
-          {workouts[0].exercises.map((exercise, exerciseIdx) => 
-            renderExercise(exercise, exerciseIdx)
-          )}
-        </div>
-      )}
+        </Accordion>
+      </div>
 
-      <Card className="p-6 bg-gradient-accent text-accent-foreground">
-        <h4 className="font-bold mb-2">💡 Lembre-se</h4>
-        <ul className="text-sm space-y-1 list-disc list-inside">
-          <li>Aumente a carga progressivamente</li>
-          <li>Mantenha a técnica correta sempre</li>
-          <li>Hidrate-se bem durante o treino</li>
-          <li>Descanse adequadamente entre treinos</li>
+      {/* Tips Card */}
+      <Card className="p-6 bg-gradient-accent">
+        <h4 className="font-bold mb-3 flex items-center gap-2">
+          <span>💡</span> Lembre-se
+        </h4>
+        <ul className="text-sm space-y-2">
+          <li className="flex items-start gap-2">
+            <ChevronRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+            <span>Aumente a carga progressivamente</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <ChevronRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+            <span>Mantenha a técnica correta sempre</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <ChevronRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+            <span>Hidrate-se bem durante o treino</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <ChevronRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+            <span>Descanse adequadamente entre treinos</span>
+          </li>
         </ul>
       </Card>
     </div>
