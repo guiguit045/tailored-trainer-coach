@@ -4,11 +4,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar as CalendarIcon, Dumbbell, Clock, TrendingUp } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Calendar as CalendarIcon, Dumbbell, Clock, TrendingUp, LineChart } from "lucide-react";
 import { getWorkoutHistory } from "@/lib/workoutStorage";
 import { format, startOfWeek, endOfWeek, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import ExerciseProgressChart from "@/components/workout/ExerciseProgressChart";
 
 interface WorkoutSession {
   id: string;
@@ -66,6 +68,30 @@ const WorkoutHistory = () => {
 
   const selectedWeekWorkouts = selectedDate ? getWeekWorkouts(selectedDate) : [];
 
+  // Group exercise logs by exercise name for progress tracking
+  const exerciseProgress = workoutSessions.reduce((acc, session) => {
+    if (!session.exercise_logs || session.exercise_logs.length === 0) return acc;
+    
+    session.exercise_logs.forEach((log: any) => {
+      const exerciseName = log.exercise_name;
+      if (!acc[exerciseName]) {
+        acc[exerciseName] = [];
+      }
+      
+      acc[exerciseName].push({
+        date: session.completed_at!,
+        sets: log.sets || [],
+      });
+    });
+    
+    return acc;
+  }, {} as Record<string, Array<{ date: string; sets: any[] }>>);
+
+  // Sort exercises by number of records (most tracked first) and take top 5
+  const topExercises = Object.entries(exerciseProgress)
+    .sort(([, a], [, b]) => b.length - a.length)
+    .slice(0, 5);
+
   // Calculate statistics
   const totalWorkouts = workoutSessions.filter(s => s.status === 'completed').length;
   const totalExercises = workoutSessions.reduce((sum, session) => 
@@ -118,6 +144,19 @@ const WorkoutHistory = () => {
       </header>
 
       <main className="max-w-7xl mx-auto py-8 px-4">
+        <Tabs defaultValue="calendar" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4" />
+              Calendário & Histórico
+            </TabsTrigger>
+            <TabsTrigger value="progress" className="flex items-center gap-2">
+              <LineChart className="h-4 w-4" />
+              Evolução
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="calendar" className="space-y-6">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card className="p-6 bg-gradient-card">
@@ -293,7 +332,51 @@ const WorkoutHistory = () => {
               </Button>
             </div>
           )}
-        </Card>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="progress" className="space-y-6">
+          {/* Progress Charts */}
+          {topExercises.length > 0 ? (
+            <>
+              <Card className="p-6 bg-gradient-card">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">Evolução dos Exercícios</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Acompanhe seu progresso em peso e repetições
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <div className="space-y-6">
+                {topExercises.map(([exerciseName, logs]) => (
+                  <ExerciseProgressChart
+                    key={exerciseName}
+                    exerciseName={exerciseName}
+                    logs={logs}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <Card className="p-12 text-center">
+              <Dumbbell className="h-16 w-16 mx-auto mb-4 opacity-20" />
+              <h3 className="text-xl font-bold mb-2">Nenhum dado de progresso ainda</h3>
+              <p className="text-muted-foreground mb-4">
+                Complete treinos e registre seu peso e repetições para ver sua evolução aqui
+              </p>
+              <Button onClick={() => navigate("/dashboard?tab=workout")}>
+                Iniciar Treino
+              </Button>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
       </main>
     </div>
   );
