@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Repeat, Timer, Info, Sparkles, ChevronRight, Calendar } from "lucide-react";
+import { Repeat, Timer, Info, Sparkles, ChevronRight, Calendar, Play } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import type { QuizData, Exercise, Workout } from "@/pages/Quiz";
 
 interface WorkoutTabProps {
@@ -190,6 +191,8 @@ const generateWorkout = (quizData: QuizData): Exercise[] => {
 };
 
 const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
+  const navigate = useNavigate();
+  
   // Use AI-generated workout if available, otherwise fall back to template
   const hasAIWorkout = quizData.aiWorkoutPlan && quizData.aiWorkoutPlan.length > 0;
   const fallbackWorkout: Workout[] = [
@@ -266,21 +269,36 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
               className="border-0"
             >
               <Card className="overflow-hidden hover:shadow-medium transition-all">
-                <AccordionTrigger className="px-6 py-4 hover:no-underline [&[data-state=open]]:bg-gradient-hero [&[data-state=open]]:text-primary-foreground">
-                  <div className="flex items-center justify-between w-full pr-4">
-                    <div className="text-left">
-                      <h4 className="text-lg font-bold mb-1">
-                        {workout.day.split(" - ")[0]}
-                      </h4>
-                      <p className="text-sm opacity-80">
-                        {workout.day.includes(" - ") ? workout.day.split(" - ")[1] : workout.description}
-                      </p>
+                <div className="flex items-stretch">
+                  <AccordionTrigger className="flex-1 px-6 py-4 hover:no-underline [&[data-state=open]]:bg-gradient-hero [&[data-state=open]]:text-primary-foreground">
+                    <div className="flex items-center justify-between w-full pr-4">
+                      <div className="text-left">
+                        <h4 className="text-lg font-bold mb-1">
+                          {workout.day.split(" - ")[0]}
+                        </h4>
+                        <p className="text-sm opacity-80">
+                          {workout.day.includes(" - ") ? workout.day.split(" - ")[1] : workout.description}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="ml-4">
+                        {workout.exercises.length} exercícios
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="ml-4">
-                      {workout.exercises.length} exercícios
-                    </Badge>
+                  </AccordionTrigger>
+                  <div className="flex items-center px-4 border-l">
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/workout/active?workout=${workoutIdx}`);
+                      }}
+                      className="h-full"
+                      size="sm"
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Iniciar
+                    </Button>
                   </div>
-                </AccordionTrigger>
+                </div>
                 <AccordionContent className="px-6 pb-6 pt-4">
                   <div className="space-y-4">
                     {workout.exercises.map((exercise, exerciseIdx) => (
