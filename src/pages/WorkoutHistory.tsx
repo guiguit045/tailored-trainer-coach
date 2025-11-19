@@ -11,6 +11,7 @@ import { format, startOfWeek, endOfWeek, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import ExerciseProgressChart from "@/components/workout/ExerciseProgressChart";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface WorkoutSession {
   id: string;
@@ -26,6 +27,7 @@ const WorkoutHistory = () => {
   const [workoutSessions, setWorkoutSessions] = useState<WorkoutSession[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [loading, setLoading] = useState(true);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
     loadHistory();
@@ -40,6 +42,14 @@ const WorkoutHistory = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+  };
+
+  const handleMonthChange = (date: Date) => {
+    setCurrentMonth(date);
   };
 
   // Get dates with completed workouts
@@ -198,122 +208,181 @@ const WorkoutHistory = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Calendar Card */}
-          <Card className="p-6 bg-gradient-card shadow-medium">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <CalendarIcon className="h-6 w-6 text-primary" />
+          <Card className="p-6 bg-gradient-card shadow-medium overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <CalendarIcon className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Calendário de Treinos</h3>
+                  <p className="text-sm text-muted-foreground">Selecione uma data para ver detalhes</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold">Calendário de Treinos</h3>
-                <p className="text-sm text-muted-foreground">Selecione uma data para ver detalhes</p>
-              </div>
-            </div>
+            </motion.div>
             <div className="flex justify-center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                locale={ptBR}
-                className="rounded-lg border-2 shadow-sm pointer-events-auto bg-background"
-                classNames={{
-                  months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                  month: "space-y-4",
-                  caption: "flex justify-center pt-1 relative items-center",
-                  caption_label: "text-base font-bold",
-                  nav: "space-x-1 flex items-center",
-                  nav_button: cn(
-                    "h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100 hover:bg-muted rounded-md transition-colors"
-                  ),
-                  nav_button_previous: "absolute left-1",
-                  nav_button_next: "absolute right-1",
-                  table: "w-full border-collapse space-y-1",
-                  head_row: "flex",
-                  head_cell: "text-muted-foreground rounded-md w-12 font-semibold text-[0.9rem]",
-                  row: "flex w-full mt-2",
-                  cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md",
-                  day: cn(
-                    "h-12 w-12 p-0 font-normal rounded-md hover:bg-accent hover:text-accent-foreground transition-colors",
-                    "aria-selected:opacity-100"
-                  ),
-                  day_range_end: "day-range-end",
-                  day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                  day_today: "bg-accent/50 text-accent-foreground font-bold border-2 border-primary",
-                  day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
-                  day_disabled: "text-muted-foreground opacity-50",
-                  day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                  day_hidden: "invisible",
-                }}
-                modifiers={{
-                  workout: workoutDates,
-                }}
-                modifiersClassNames={{
-                  workout: "bg-green-500/20 text-green-700 font-bold border-2 border-green-500 hover:bg-green-500/30",
-                }}
-              />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentMonth.toISOString()}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={handleDateSelect}
+                    month={currentMonth}
+                    onMonthChange={handleMonthChange}
+                    locale={ptBR}
+                    className="rounded-lg border-2 shadow-sm pointer-events-auto bg-background"
+                    classNames={{
+                      months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                      month: "space-y-4",
+                      caption: "flex justify-center pt-1 relative items-center",
+                      caption_label: "text-base font-bold",
+                      nav: "space-x-1 flex items-center",
+                      nav_button: cn(
+                        "h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100 hover:bg-muted rounded-md transition-all duration-200 hover:scale-110"
+                      ),
+                      nav_button_previous: "absolute left-1",
+                      nav_button_next: "absolute right-1",
+                      table: "w-full border-collapse space-y-1",
+                      head_row: "flex",
+                      head_cell: "text-muted-foreground rounded-md w-12 font-semibold text-[0.9rem]",
+                      row: "flex w-full mt-2",
+                      cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md",
+                      day: cn(
+                        "h-12 w-12 p-0 font-normal rounded-md hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-110",
+                        "aria-selected:opacity-100 active:scale-95"
+                      ),
+                      day_range_end: "day-range-end",
+                      day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground scale-105",
+                      day_today: "bg-accent/50 text-accent-foreground font-bold border-2 border-primary",
+                      day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                      day_disabled: "text-muted-foreground opacity-50",
+                      day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                      day_hidden: "invisible",
+                    }}
+                    modifiers={{
+                      workout: workoutDates,
+                    }}
+                    modifiersClassNames={{
+                      workout: "bg-green-500/20 text-green-700 font-bold border-2 border-green-500 hover:bg-green-500/30 hover:scale-110",
+                    }}
+                  />
+                </motion.div>
+              </AnimatePresence>
             </div>
-            <div className="mt-6 space-y-2">
+            <motion.div 
+              className="mt-6 space-y-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               <div className="flex items-center gap-3 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-green-500/20 border-2 border-green-500"></div>
+                  <motion.div 
+                    className="w-6 h-6 rounded-md bg-green-500/20 border-2 border-green-500"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                  ></motion.div>
                   <span className="text-muted-foreground">Treino realizado</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-accent/50 border-2 border-primary"></div>
+                  <motion.div 
+                    className="w-6 h-6 rounded-md bg-accent/50 border-2 border-primary"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                  ></motion.div>
                   <span className="text-muted-foreground">Hoje</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </Card>
 
           {/* Selected Week Workouts */}
           <Card className="p-6">
-            <h3 className="text-lg font-bold mb-4">
+            <motion.h3 
+              className="text-lg font-bold mb-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+            >
               {selectedDate && `Semana de ${format(startOfWeek(selectedDate, { locale: ptBR }), "dd MMM", { locale: ptBR })}`}
-            </h3>
-            {selectedWeekWorkouts.length > 0 ? (
-              <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                {selectedWeekWorkouts.map((session) => (
-                  <Card key={session.id} className="p-4 bg-muted/30">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-bold">{session.day_name}</h4>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                          <CalendarIcon className="h-3 w-3" />
-                          {format(parseISO(session.completed_at!), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                        </p>
-                      </div>
-                      <Badge className="bg-green-500/20 text-green-700 border-green-500/30">
-                        Concluído
-                      </Badge>
-                    </div>
-                    {session.exercise_logs && session.exercise_logs.length > 0 && (
-                      <div className="mt-3 pt-3 border-t">
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {session.exercise_logs.length} exercícios realizados
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {session.exercise_logs.slice(0, 3).map((log: any, idx: number) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {log.exercise_name}
-                            </Badge>
-                          ))}
-                          {session.exercise_logs.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{session.exercise_logs.length - 3}
-                            </Badge>
-                          )}
+            </motion.h3>
+            <AnimatePresence mode="wait">
+              {selectedWeekWorkouts.length > 0 ? (
+                <motion.div 
+                  key={selectedDate?.toISOString()}
+                  className="space-y-3 max-h-[400px] overflow-y-auto"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {selectedWeekWorkouts.map((session, index) => (
+                    <motion.div
+                      key={session.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Card className="p-4 bg-muted/30 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h4 className="font-bold">{session.day_name}</h4>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                              <CalendarIcon className="h-3 w-3" />
+                              {format(parseISO(session.completed_at!), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </p>
+                          </div>
+                          <Badge className="bg-green-500/20 text-green-700 border-green-500/30">
+                            Concluído
+                          </Badge>
                         </div>
-                      </div>
-                    )}
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                <p>Nenhum treino realizado nesta semana</p>
-              </div>
-            )}
+                        {session.exercise_logs && session.exercise_logs.length > 0 && (
+                          <div className="mt-3 pt-3 border-t">
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {session.exercise_logs.length} exercícios realizados
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {session.exercise_logs.slice(0, 3).map((log: any, idx: number) => (
+                                <Badge key={idx} variant="outline" className="text-xs">
+                                  {log.exercise_name}
+                                </Badge>
+                              ))}
+                              {session.exercise_logs.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{session.exercise_logs.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="empty"
+                  className="text-center py-8 text-muted-foreground"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                  <p>Nenhum treino realizado nesta semana</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Card>
         </div>
 
