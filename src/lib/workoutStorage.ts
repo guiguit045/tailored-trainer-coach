@@ -228,21 +228,42 @@ export async function getWorkoutHistory(limit = 10) {
   return data || [];
 }
 
-// Get completed workouts for today
-export async function getTodayCompletedWorkouts() {
+// Get completed workouts in current 7-day cycle
+export async function getCurrentCycleCompletedWorkouts() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
+  // Get all completed workouts ordered by completion date
   const { data, error } = await supabase
     .from("workout_sessions")
     .select("day_name, completed_at")
     .eq("user_id", user.id)
     .eq("status", "completed")
-    .gte("completed_at", today.toISOString());
+    .order("completed_at", { ascending: true });
 
   if (error) throw error;
-  return data || [];
+  if (!data || data.length === 0) return [];
+
+  // Find the first workout completion date
+  const firstWorkoutDate = new Date(data[0].completed_at!);
+  const now = new Date();
+  
+  // Calculate how many days have passed since the first workout
+  const daysPassed = Math.floor((now.getTime() - firstWorkoutDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Calculate which 7-day cycle we're in
+  const currentCycle = Math.floor(daysPassed / 7);
+  
+  // Calculate the start of the current cycle
+  const cycleStartDate = new Date(firstWorkoutDate);
+  cycleStartDate.setDate(cycleStartDate.getDate() + (currentCycle * 7));
+  
+  // Filter workouts that are in the current 7-day cycle
+  const cycleWorkouts = data.filter(workout => {
+    const workoutDate = new Date(workout.completed_at!);
+    const daysSinceCycleStart = Math.floor((workoutDate.getTime() - cycleStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    return daysSinceCycleStart >= 0 && daysSinceCycleStart < 7;
+  });
+
+  return cycleWorkouts;
 }
