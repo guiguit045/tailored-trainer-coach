@@ -449,3 +449,74 @@ export const toggleMealCompletion = async (mealIndex: number): Promise<boolean> 
     throw error;
   }
 };
+
+// Get water intake for today
+export const getWaterIntake = async (): Promise<number> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return 0;
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('water_intake')
+      .select('amount_ml')
+      .eq('user_id', user.id)
+      .eq('intake_date', today)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.amount_ml || 0;
+  } catch (error) {
+    console.error("Error getting water intake:", error);
+    return 0;
+  }
+};
+
+// Add water intake (200ml per glass)
+export const addWaterIntake = async (amountMl: number): Promise<number> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Check if record exists for today
+    const { data: existing } = await supabase
+      .from('water_intake')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('intake_date', today)
+      .maybeSingle();
+
+    if (existing) {
+      // Update existing record
+      const newAmount = existing.amount_ml + amountMl;
+      const { error } = await supabase
+        .from('water_intake')
+        .update({ 
+          amount_ml: newAmount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id);
+      
+      if (error) throw error;
+      return newAmount;
+    } else {
+      // Create new record
+      const { error } = await supabase
+        .from('water_intake')
+        .insert({
+          user_id: user.id,
+          intake_date: today,
+          amount_ml: amountMl
+        });
+      
+      if (error) throw error;
+      return amountMl;
+    }
+  } catch (error) {
+    console.error("Error adding water intake:", error);
+    throw error;
+  }
+};
