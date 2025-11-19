@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -432,11 +432,24 @@ const Quiz = () => {
     commitmentLevel: "",
   });
 
-  // Filter questions based on conditions
-  const activeQuestions = questions.filter((q) => !q.condition || q.condition(quizData));
-  const currentQuestion = activeQuestions[currentIndex];
+  // Filter questions based on conditions - memoized to prevent unnecessary recalculations
+  const activeQuestions = useMemo(() => {
+    console.log("🔄 Recalculating activeQuestions");
+    return questions.filter((q) => !q.condition || q.condition(quizData));
+  }, [quizData]);
+
   const totalQuestions = activeQuestions.length;
+  const currentQuestion = activeQuestions[currentIndex];
   const progress = ((currentIndex + 1) / totalQuestions) * 100;
+
+  // Stabilize currentIndex if activeQuestions changes
+  useEffect(() => {
+    console.log("📊 Active questions changed. Total:", totalQuestions, "Current index:", currentIndex);
+    if (currentIndex >= totalQuestions && totalQuestions > 0) {
+      console.log("⚠️ Index out of bounds, adjusting to:", totalQuestions - 1);
+      setCurrentIndex(totalQuestions - 1);
+    }
+  }, [activeQuestions.length, totalQuestions, currentIndex]);
 
   const updateQuizData = (field: keyof QuizData, value: any) => {
     setQuizData((prev) => ({ ...prev, [field]: value }));
@@ -454,24 +467,26 @@ const Quiz = () => {
       return;
     }
 
-    const newPhotos: string[] = [];
-    
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Cada foto deve ter no máximo 5MB");
-        continue;
-      }
-
-      // Convert to base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        newPhotos.push(reader.result as string);
-        if (newPhotos.length === files.length) {
-          setUploadedPhotos(prev => [...prev, ...newPhotos]);
+    // Optimize: Use Promise.all to read all files before updating state once
+    const readFilePromises = Array.from(files).map((file) => {
+      return new Promise<string | null>((resolve) => {
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error("Cada foto deve ter no máximo 5MB");
+          resolve(null);
+          return;
         }
-      };
-      reader.readAsDataURL(file);
+
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    const newPhotos = (await Promise.all(readFilePromises)).filter((photo): photo is string => photo !== null);
+    
+    if (newPhotos.length > 0) {
+      setUploadedPhotos(prev => [...prev, ...newPhotos]);
     }
   };
 
@@ -533,10 +548,15 @@ const Quiz = () => {
   };
 
   const handleNext = async () => {
+    console.log("➡️ handleNext called. Current index:", currentIndex, "Total:", totalQuestions);
+    
     if (currentIndex < totalQuestions - 1) {
       celebrateAnswer();
       setDirection("next");
-      setTimeout(() => setCurrentIndex(currentIndex + 1), 50);
+      setTimeout(() => {
+        console.log("⏭️ Moving to next question:", currentIndex + 1);
+        setCurrentIndex(currentIndex + 1);
+      }, 50);
     } else {
       // Final step - analyze photos if uploaded
       let bodyAnalysis = null;
@@ -562,9 +582,14 @@ const Quiz = () => {
   };
 
   const handleBack = () => {
+    console.log("⬅️ handleBack called. Current index:", currentIndex);
+    
     if (currentIndex > 0) {
       setDirection("back");
-      setTimeout(() => setCurrentIndex(currentIndex - 1), 50);
+      setTimeout(() => {
+        console.log("⏮️ Moving to previous question:", currentIndex - 1);
+        setCurrentIndex(currentIndex - 1);
+      }, 50);
     }
   };
 
@@ -612,7 +637,6 @@ const Quiz = () => {
       <div className="flex-1 flex items-center justify-center px-4 pt-24 pb-8">
         <div className="w-full max-w-2xl">
           <Card
-            key={currentIndex}
             className={`p-8 md:p-12 shadow-elegant bg-card/50 backdrop-blur-sm border-2 animate-fade-in ${
               direction === "next" ? "animate-slide-in-right" : ""
             }`}
