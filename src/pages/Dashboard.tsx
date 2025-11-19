@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, Apple, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { QuizData } from "./Quiz";
 import WorkoutTab from "@/components/dashboard/WorkoutTab";
 import DietTab from "@/components/dashboard/DietTab";
@@ -82,12 +83,28 @@ const Dashboard = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="workout">
-            <WorkoutTab quizData={quizData} />
+          <TabsContent value="workout" className="m-0">
+            <motion.div
+              key="workout"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <WorkoutTab quizData={quizData} />
+            </motion.div>
           </TabsContent>
 
-          <TabsContent value="diet">
-            <DietTab quizData={quizData} />
+          <TabsContent value="diet" className="m-0">
+            <motion.div
+              key="diet"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <DietTab quizData={quizData} />
+            </motion.div>
           </TabsContent>
         </Tabs>
       </main>
