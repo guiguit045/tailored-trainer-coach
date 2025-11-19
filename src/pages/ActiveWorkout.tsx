@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronDown, ChevronUp, Info } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, ChevronDown, ChevronUp, Info, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
@@ -20,6 +21,8 @@ const ActiveWorkout = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isResting, setIsResting] = useState(false);
   const [restTimeLeft, setRestTimeLeft] = useState(0);
+  const [setData, setSetData] = useState<Record<number, Array<{ weight: string; reps: string }>>>({});
+  const [setsCount, setSetsCount] = useState<Record<number, number>>({});
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,13 +40,26 @@ const ActiveWorkout = () => {
     
     if (workouts[workoutIndex]) {
       setWorkout(workouts[workoutIndex]);
-      // Initialize completed sets for all exercises
+      // Initialize completed sets and data for all exercises
       const initialSets: Record<number, boolean[]> = {};
+      const initialData: Record<number, Array<{ weight: string; reps: string }>> = {};
+      const initialCounts: Record<number, number> = {};
+      
       workouts[workoutIndex].exercises.forEach((exercise: any, idx: number) => {
-        const setsCount = parseInt(exercise.sets) || 3;
-        initialSets[idx] = Array(setsCount).fill(false);
+        const count = parseInt(exercise.sets) || 3;
+        initialSets[idx] = Array(count).fill(false);
+        initialCounts[idx] = count;
+        
+        // Parse reps range (e.g., "8-10" or "12")
+        const repsRange = exercise.reps.split("-");
+        const defaultReps = repsRange[0];
+        
+        initialData[idx] = Array(count).fill({ weight: "", reps: defaultReps });
       });
+      
       setCompletedSets(initialSets);
+      setSetData(initialData);
+      setSetsCount(initialCounts);
     } else {
       navigate("/dashboard?tab=workout");
     }
@@ -111,6 +127,43 @@ const ActiveWorkout = () => {
     }));
   };
 
+  const updateSetData = (exerciseIdx: number, setIdx: number, field: 'weight' | 'reps', value: string) => {
+    setSetData((prev) => {
+      const newData = { ...prev };
+      newData[exerciseIdx] = [...(prev[exerciseIdx] || [])];
+      newData[exerciseIdx][setIdx] = {
+        ...newData[exerciseIdx][setIdx],
+        [field]: value,
+      };
+      return newData;
+    });
+  };
+
+  const addSet = (exerciseIdx: number) => {
+    setSetsCount((prev) => ({
+      ...prev,
+      [exerciseIdx]: (prev[exerciseIdx] || 0) + 1,
+    }));
+    
+    setCompletedSets((prev) => {
+      const newSets = { ...prev };
+      newSets[exerciseIdx] = [...(prev[exerciseIdx] || []), false];
+      return newSets;
+    });
+    
+    setSetData((prev) => {
+      const newData = { ...prev };
+      const lastSet = prev[exerciseIdx]?.[prev[exerciseIdx].length - 1] || { weight: "", reps: "" };
+      newData[exerciseIdx] = [...(prev[exerciseIdx] || []), { ...lastSet }];
+      return newData;
+    });
+    
+    toast({
+      title: "Série adicionada",
+      description: "Nova série adicionada ao exercício",
+    });
+  };
+
   const finishWorkout = () => {
     toast({
       title: "Treino concluído! 🎉",
@@ -163,7 +216,7 @@ const ActiveWorkout = () => {
       {/* Exercises List */}
       <main className="px-4 py-4 space-y-3">
         {workout.exercises.map((exercise, exerciseIdx) => {
-          const setsCount = parseInt(exercise.sets);
+          const currentSetsCount = setsCount[exerciseIdx] || parseInt(exercise.sets);
           const completedCount = completedSets[exerciseIdx]?.filter(Boolean).length || 0;
           const isExpanded = expandedExercises[exerciseIdx];
 
@@ -180,7 +233,7 @@ const ActiveWorkout = () => {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-base mb-1">{exercise.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {completedCount}/{setsCount} feito(s)
+                      {completedCount}/{currentSetsCount} feito(s)
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -217,12 +270,14 @@ const ActiveWorkout = () => {
                   >
                     <div className="px-4 pb-4 space-y-2 border-t pt-3">
                       {/* Sets List */}
-                      {Array.from({ length: setsCount }).map((_, setIdx) => {
+                      {Array.from({ length: currentSetsCount }).map((_, setIdx) => {
                         const isCompleted = completedSets[exerciseIdx]?.[setIdx];
+                        const setInfo = setData[exerciseIdx]?.[setIdx] || { weight: "", reps: "" };
+                        
                         return (
                           <div
                             key={setIdx}
-                            className="bg-muted/30 rounded-lg p-3 flex items-center gap-3"
+                            className="bg-muted/30 rounded-lg p-3 flex items-center gap-2"
                           >
                             <button
                               onClick={() => toggleSetComplete(exerciseIdx, setIdx)}
@@ -236,22 +291,40 @@ const ActiveWorkout = () => {
                                 <span className="text-primary-foreground text-lg">✓</span>
                               )}
                             </button>
-                            <div className="flex-1 flex items-center gap-2">
-                              <span className="font-semibold text-lg min-w-[20px]">{setIdx + 1}</span>
-                              <div className="flex-1 flex items-center gap-2">
-                                <div className="bg-muted rounded px-3 py-1.5 text-center min-w-[60px]">
-                                  <span className="text-sm font-medium">{exercise.reps.split("-")[0]}</span>
-                                </div>
-                                <span className="text-xs text-muted-foreground">KG</span>
-                                <div className="bg-muted rounded px-3 py-1.5 text-center min-w-[60px]">
-                                  <span className="text-sm font-medium">{exercise.reps.split("-")[1] || exercise.reps.split("-")[0]}</span>
-                                </div>
-                                <span className="text-xs text-muted-foreground">Rep.</span>
-                              </div>
+                            <span className="font-semibold text-lg w-6">{setIdx + 1}</span>
+                            
+                            <div className="flex items-center gap-1.5 flex-1">
+                              <Input
+                                type="number"
+                                value={setInfo.weight}
+                                onChange={(e) => updateSetData(exerciseIdx, setIdx, 'weight', e.target.value)}
+                                placeholder="12"
+                                className="h-9 text-center bg-background border-border text-sm"
+                              />
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">KG</span>
+                              
+                              <Input
+                                type="number"
+                                value={setInfo.reps}
+                                onChange={(e) => updateSetData(exerciseIdx, setIdx, 'reps', e.target.value)}
+                                placeholder="8"
+                                className="h-9 text-center bg-background border-border text-sm"
+                              />
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">Rep.</span>
                             </div>
                           </div>
                         );
                       })}
+
+                      {/* Add Set Button */}
+                      <Button
+                        variant="outline"
+                        onClick={() => addSet(exerciseIdx)}
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Adicionar uma série
+                      </Button>
 
                       {/* Tips */}
                       <div className="mt-3 bg-primary/5 p-3 rounded-lg border border-primary/10">
