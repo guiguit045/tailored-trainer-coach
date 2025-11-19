@@ -1,6 +1,10 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Coffee, Sun, Moon, Apple, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Coffee, Sun, Moon, Apple, Info, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { getMealCompletions, toggleMealCompletion } from "@/lib/workoutStorage";
 import type { QuizData } from "@/pages/Quiz";
 
 interface DietTabProps {
@@ -125,12 +129,56 @@ const generateDiet = (quizData: QuizData): Meal[] => {
 };
 
 const DietTab = ({ quizData }: DietTabProps) => {
+  const { toast } = useToast();
   const diet = generateDiet(quizData);
+  const [completedMeals, setCompletedMeals] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState<Record<number, boolean>>({});
+  
+  useEffect(() => {
+    loadMealCompletions();
+  }, []);
+
+  const loadMealCompletions = async () => {
+    const completed = await getMealCompletions();
+    setCompletedMeals(completed);
+  };
+
+  const handleToggleMeal = async (mealIndex: number) => {
+    setIsLoading(prev => ({ ...prev, [mealIndex]: true }));
+    try {
+      const isCompleted = await toggleMealCompletion(mealIndex);
+      
+      if (isCompleted) {
+        setCompletedMeals(prev => [...prev, mealIndex]);
+        toast({
+          title: "Refeição registrada! 🍽️",
+          description: "Continue assim para manter sua dieta em dia!",
+        });
+      } else {
+        setCompletedMeals(prev => prev.filter(idx => idx !== mealIndex));
+        toast({
+          title: "Registro removido",
+          description: "Refeição desmarcada",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o registro",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(prev => ({ ...prev, [mealIndex]: false }));
+    }
+  };
   
   const totalCalories = diet.reduce((sum, meal) => {
     const cals = parseInt(meal.calories.match(/\d+/)?.[0] || "0");
     return sum + cals;
   }, 0);
+
+  const completedCount = completedMeals.length;
+  const totalMeals = diet.length;
 
   return (
     <div className="space-y-4">
@@ -139,9 +187,12 @@ const DietTab = ({ quizData }: DietTabProps) => {
         <p className="text-sm text-muted-foreground mb-4">
           Dieta personalizada baseada em suas preferências e objetivo
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-primary">
             Total diário: ~{totalCalories} kcal
+          </Badge>
+          <Badge variant={completedCount === totalMeals ? "default" : "secondary"}>
+            {completedCount}/{totalMeals} refeições hoje
           </Badge>
           {quizData.allergies === "yes" && (
             <Badge variant="destructive" className="text-xs">
@@ -153,6 +204,9 @@ const DietTab = ({ quizData }: DietTabProps) => {
 
       {diet.map((meal, index) => {
         const Icon = meal.icon;
+        const isCompleted = completedMeals.includes(index);
+        const isLoadingMeal = isLoading[index];
+        
         return (
           <Card key={index} className="p-6 hover:shadow-medium transition-all">
             <div className="flex items-start justify-between mb-4">
@@ -167,6 +221,17 @@ const DietTab = ({ quizData }: DietTabProps) => {
                   </Badge>
                 </div>
               </div>
+              
+              <Button
+                variant={isCompleted ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleToggleMeal(index)}
+                disabled={isLoadingMeal}
+                className="flex items-center gap-2"
+              >
+                {isCompleted && <Check className="h-4 w-4" />}
+                {isCompleted ? "Concluída" : "Marcar"}
+              </Button>
             </div>
 
             <div className="space-y-3">
