@@ -269,35 +269,30 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
               className="border-0"
             >
               <Card className="overflow-hidden hover:shadow-medium transition-all">
-                <div className="flex items-stretch">
-                  <AccordionTrigger className="flex-1 px-6 py-4 hover:no-underline [&[data-state=open]]:bg-gradient-hero [&[data-state=open]]:text-primary-foreground">
-                    <div className="flex items-center justify-between w-full pr-4">
-                      <div className="text-left">
-                        <h4 className="text-lg font-bold mb-1">
-                          {workout.day.split(" - ")[0]}
-                        </h4>
-                        <p className="text-sm opacity-80">
-                          {workout.day.includes(" - ") ? workout.day.split(" - ")[1] : workout.description}
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="ml-4">
-                        {workout.exercises.length} exercícios
-                      </Badge>
+                <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline [&[data-state=open]]:bg-gradient-hero [&[data-state=open]]:text-primary-foreground">
+                  <div className="flex items-center justify-between w-full pr-4">
+                    <div className="text-left flex-1">
+                      <h4 className="text-base sm:text-lg font-bold mb-1">
+                        {workout.day.split(" - ")[0]}
+                      </h4>
+                      <p className="text-xs sm:text-sm opacity-80">
+                        {workout.day.includes(" - ") ? workout.day.split(" - ")[1] : workout.description}
+                      </p>
                     </div>
-                  </AccordionTrigger>
-                  <div className="flex items-center px-4 border-l">
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/workout/active?workout=${workoutIdx}`);
-                      }}
-                      className="h-full"
-                      size="sm"
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Iniciar
-                    </Button>
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {workout.exercises.length}
+                    </Badge>
                   </div>
+                </AccordionTrigger>
+                <div className="px-4 sm:px-6 pb-4 border-t">
+                  <Button
+                    onClick={() => navigate(`/workout/active?workout=${workoutIdx}`)}
+                    className="w-full mt-4"
+                    size="lg"
+                  >
+                    <Play className="h-5 w-5 mr-2" />
+                    Iniciar Treino
+                  </Button>
                 </div>
                 <AccordionContent className="px-6 pb-6 pt-4">
                   <div className="space-y-4">

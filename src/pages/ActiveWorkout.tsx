@@ -2,9 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Play, Pause, Check, Timer as TimerIcon, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
@@ -16,13 +14,12 @@ const ActiveWorkout = () => {
   
   const workoutIndex = parseInt(searchParams.get("workout") || "0");
   const [workout, setWorkout] = useState<Workout | null>(null);
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [completedSets, setCompletedSets] = useState<Record<number, boolean[]>>({});
-  const [isResting, setIsResting] = useState(false);
-  const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [expandedExercises, setExpandedExercises] = useState<Record<number, boolean>>({});
   const [workoutStartTime] = useState(Date.now());
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [isResting, setIsResting] = useState(false);
+  const [restTimeLeft, setRestTimeLeft] = useState(0);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -47,8 +44,6 @@ const ActiveWorkout = () => {
         initialSets[idx] = Array(setsCount).fill(false);
       });
       setCompletedSets(initialSets);
-      // Expand first exercise by default
-      setExpandedExercises({ 0: true });
     } else {
       navigate("/dashboard?tab=workout");
     }
@@ -80,9 +75,7 @@ const ActiveWorkout = () => {
           if (timerRef.current) clearInterval(timerRef.current);
           setIsResting(false);
           // Play notification sound
-          audioRef.current?.play().catch(() => {
-            // Silently fail if audio doesn't play
-          });
+          audioRef.current?.play().catch(() => {});
           toast({
             title: "Descanso terminado!",
             description: "Hora de fazer a próxima série",
@@ -139,64 +132,36 @@ const ActiveWorkout = () => {
     (acc, sets) => acc + sets.filter(Boolean).length,
     0
   );
-  const progressPercentage = (completedSetsCount / totalSets) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <header className="bg-gradient-hero text-primary-foreground py-4 px-4 shadow-medium sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/dashboard?tab=workout")}
-              className="text-primary-foreground hover:bg-white/20"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex-1">
-              <h1 className="text-lg font-bold">{workout.day.split(" - ")[0]}</h1>
-              <p className="text-sm opacity-90">{formatTime(elapsedTime)}</p>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>{completedSetsCount} / {totalSets} séries</span>
-              <span>{Math.round(progressPercentage)}%</span>
-            </div>
-            <Progress value={progressPercentage} className="h-2" />
+      <header className="bg-background border-b sticky top-0 z-10 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/dashboard?tab=workout")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1">
+            <h1 className="text-lg font-bold">{workout.day.split(" - ")[0]}</h1>
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <span>{formatTime(elapsedTime)}</span>
+              {isResting && (
+                <>
+                  <span>•</span>
+                  <span className="text-accent font-medium">Descanso: {formatTime(restTimeLeft)}</span>
+                </>
+              )}
+            </p>
           </div>
         </div>
       </header>
 
-      {/* Rest Timer Overlay */}
-      <AnimatePresence>
-        {isResting && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 left-0 right-0 z-20 mx-4"
-          >
-            <Card className="max-w-4xl mx-auto bg-accent text-accent-foreground p-4 shadow-elegant">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <TimerIcon className="h-6 w-6 animate-pulse" />
-                  <div>
-                    <p className="font-bold">Descansando</p>
-                    <p className="text-sm opacity-90">Próxima série em breve</p>
-                  </div>
-                </div>
-                <div className="text-4xl font-bold">{formatTime(restTimeLeft)}</div>
-              </div>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Exercises List */}
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-3">
+      <main className="px-4 py-4 space-y-3">
         {workout.exercises.map((exercise, exerciseIdx) => {
           const setsCount = parseInt(exercise.sets);
           const completedCount = completedSets[exerciseIdx]?.filter(Boolean).length || 0;
@@ -204,32 +169,43 @@ const ActiveWorkout = () => {
 
           return (
             <Card key={exerciseIdx} className="overflow-hidden">
-              <div
-                className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+              <button
+                className="w-full p-4 text-left hover:bg-muted/50 transition-colors"
                 onClick={() => toggleExerciseExpanded(exerciseIdx)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-lg">{exercise.name}</h3>
-                      {completedCount === setsCount && (
-                        <Badge className="bg-green-500 text-white">
-                          <Check className="h-3 w-3 mr-1" />
-                          Completo
-                        </Badge>
-                      )}
-                    </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <span className="text-2xl">💪</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-base mb-1">{exercise.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {completedCount}/{setsCount} séries • {exercise.reps} reps • {exercise.rest} descanso
+                      {completedCount}/{setsCount} feito(s)
                     </p>
                   </div>
-                  {isExpanded ? (
-                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast({
+                          title: "Dica",
+                          description: exercise.tip,
+                        });
+                      }}
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
+                    {isExpanded ? (
+                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
                 </div>
-              </div>
+              </button>
 
               <AnimatePresence>
                 {isExpanded && (
@@ -239,47 +215,48 @@ const ActiveWorkout = () => {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <div className="px-4 pb-4 space-y-3 border-t">
-                      {/* Sets Checklist */}
-                      <div className="space-y-2 pt-4">
-                        {Array.from({ length: setsCount }).map((_, setIdx) => {
-                          const isCompleted = completedSets[exerciseIdx]?.[setIdx];
-                          return (
+                    <div className="px-4 pb-4 space-y-2 border-t pt-3">
+                      {/* Sets List */}
+                      {Array.from({ length: setsCount }).map((_, setIdx) => {
+                        const isCompleted = completedSets[exerciseIdx]?.[setIdx];
+                        return (
+                          <div
+                            key={setIdx}
+                            className="bg-muted/30 rounded-lg p-3 flex items-center gap-3"
+                          >
                             <button
-                              key={setIdx}
                               onClick={() => toggleSetComplete(exerciseIdx, setIdx)}
-                              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                              className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${
                                 isCompleted
-                                  ? "bg-primary/10 border-2 border-primary"
-                                  : "bg-muted/30 border-2 border-transparent hover:border-muted"
+                                  ? "bg-primary border-primary"
+                                  : "border-muted-foreground"
                               }`}
                             >
-                              <div
-                                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                                  isCompleted
-                                    ? "bg-primary border-primary"
-                                    : "border-muted-foreground"
-                                }`}
-                              >
-                                {isCompleted && <Check className="h-4 w-4 text-primary-foreground" />}
-                              </div>
-                              <div className="flex-1 text-left">
-                                <span className="font-semibold">Série {setIdx + 1}</span>
-                              </div>
-                              <div className="flex items-center gap-4 text-sm">
-                                <span className="text-muted-foreground">{exercise.reps} Rep.</span>
-                              </div>
+                              {isCompleted && (
+                                <span className="text-primary-foreground text-lg">✓</span>
+                              )}
                             </button>
-                          );
-                        })}
-                      </div>
+                            <div className="flex-1 flex items-center gap-2">
+                              <span className="font-semibold text-lg min-w-[20px]">{setIdx + 1}</span>
+                              <div className="flex-1 flex items-center gap-2">
+                                <div className="bg-muted rounded px-3 py-1.5 text-center min-w-[60px]">
+                                  <span className="text-sm font-medium">{exercise.reps.split("-")[0]}</span>
+                                </div>
+                                <span className="text-xs text-muted-foreground">KG</span>
+                                <div className="bg-muted rounded px-3 py-1.5 text-center min-w-[60px]">
+                                  <span className="text-sm font-medium">{exercise.reps.split("-")[1] || exercise.reps.split("-")[0]}</span>
+                                </div>
+                                <span className="text-xs text-muted-foreground">Rep.</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
 
-                      {/* Exercise Details */}
-                      <div className="space-y-2 pt-2">
-                        <div className="bg-primary/5 p-3 rounded-lg border border-primary/10">
-                          <p className="text-xs font-semibold text-primary mb-1">Dica</p>
-                          <p className="text-sm">{exercise.tip}</p>
-                        </div>
+                      {/* Tips */}
+                      <div className="mt-3 bg-primary/5 p-3 rounded-lg border border-primary/10">
+                        <p className="text-xs font-semibold text-primary mb-1">💡 Dica</p>
+                        <p className="text-xs text-muted-foreground">{exercise.tip}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -288,18 +265,18 @@ const ActiveWorkout = () => {
             </Card>
           );
         })}
+      </main>
 
-        {/* Finish Workout Button */}
+      {/* Fixed Bottom Button */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t shadow-lg">
         <Button
           onClick={finishWorkout}
-          className="w-full h-14 text-lg font-bold"
-          disabled={completedSetsCount < totalSets}
+          className="w-full h-14 text-base font-bold"
+          size="lg"
         >
-          {completedSetsCount < totalSets
-            ? `Complete ${totalSets - completedSetsCount} séries restantes`
-            : "Finalizar Treino"}
+          REGISTRAR A PRÓXIMA SÉRIE
         </Button>
-      </main>
+      </div>
     </div>
   );
 };
