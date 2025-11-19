@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { QuizData } from "./Quiz";
 import WorkoutTab from "@/components/dashboard/WorkoutTab";
 import DietTab from "@/components/dashboard/DietTab";
+import { getQuizResponses, getActiveWorkoutPlan } from "@/lib/workoutStorage";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -20,12 +21,102 @@ const Dashboard = () => {
   const defaultTab = searchParams.get("tab") || "workout";
 
   useEffect(() => {
-    const storedData = localStorage.getItem("quizData");
-    if (!storedData) {
-      navigate("/quiz");
-      return;
-    }
-    setQuizData(JSON.parse(storedData));
+    const loadData = async () => {
+      try {
+        // Try to fetch from database first
+        const dbQuizData = await getQuizResponses();
+        const dbWorkoutPlan = await getActiveWorkoutPlan();
+
+        if (dbQuizData) {
+          // Convert database format to QuizData format
+          const quizDataConverted: QuizData = {
+            age: dbQuizData.age?.toString() || "",
+            height: dbQuizData.height?.toString() || "",
+            currentWeight: dbQuizData.weight?.toString() || "",
+            desiredWeight: "",
+            mainGoal: dbQuizData.goal || "",
+            trainingTime: "",
+            hasTrainedBefore: dbQuizData.experienceLevel !== "beginner" ? "yes" : "no",
+            experienceTime: dbQuizData.experienceLevel || "",
+            knownExercises: [],
+            hasFear: "",
+            hasLimitations: dbQuizData.physicalLimitations ? "yes" : "no",
+            hasPain: "",
+            painDetails: dbQuizData.physicalLimitations || "",
+            trainingDays: dbQuizData.trainingFrequency?.toString() || "",
+            preferredTime: dbQuizData.preferredTime || "",
+            sleepQuality: "",
+            stressLevel: "",
+            equipmentAvailable: dbQuizData.gymAccess ? "gym" : "home",
+            workoutLength: dbQuizData.workoutDuration || "",
+            workoutSplit: "",
+            desiredIntensity: "",
+            eatsMeat: "",
+            allergies: dbQuizData.dietaryRestrictions ? "yes" : "no",
+            allergiesList: dbQuizData.dietaryRestrictions || "",
+            dislikedFoods: "",
+            lovedFoods: "",
+            canCook: "",
+            mealsPerDay: "",
+            jobType: "",
+            activityLevel: "",
+            alcoholConsumption: "",
+            sugarConsumption: "",
+            healthIssues: "",
+            healthIssuesList: "",
+            highBloodPressure: "",
+            diabetes: "",
+            highCholesterol: "",
+            familyHistory: "",
+            deadline: "",
+            motivation: "",
+            pastObstacles: "",
+            currentMotivation: "",
+            commitmentLevel: "",
+          };
+
+          // Convert workout plan if available
+          if (dbWorkoutPlan && dbWorkoutPlan.days) {
+            quizDataConverted.aiWorkoutPlan = dbWorkoutPlan.days.map((day: any) => ({
+              day: day.day,
+              description: day.focus,
+              exercises: day.exercises.map((ex: any) => ({
+                name: ex.name,
+                sets: ex.sets?.toString() || "3",
+                reps: ex.reps || "10-12",
+                rest: ex.rest || "60s",
+                tip: ex.tips || "",
+                why: "",
+                variations: [],
+              })),
+            }));
+          }
+
+          setQuizData(quizDataConverted);
+          // Also update localStorage for compatibility
+          localStorage.setItem("quizData", JSON.stringify(quizDataConverted));
+        } else {
+          // Fallback to localStorage
+          const storedData = localStorage.getItem("quizData");
+          if (!storedData) {
+            navigate("/quiz");
+            return;
+          }
+          setQuizData(JSON.parse(storedData));
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+        // Fallback to localStorage on error
+        const storedData = localStorage.getItem("quizData");
+        if (!storedData) {
+          navigate("/quiz");
+          return;
+        }
+        setQuizData(JSON.parse(storedData));
+      }
+    };
+
+    loadData();
 
     // Fetch user profile
     const fetchProfile = async () => {
@@ -35,7 +126,7 @@ const Dashboard = () => {
           .from('profiles')
           .select('name')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
         
         if (profile) {
           setUserName(profile.name);

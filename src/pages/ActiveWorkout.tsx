@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronDown, ChevronUp, Info, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
+import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog } from "@/lib/workoutStorage";
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -23,46 +24,66 @@ const ActiveWorkout = () => {
   const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [setData, setSetData] = useState<Record<number, Array<{ weight: string; reps: string }>>>({});
   const [setsCount, setSetsCount] = useState<Record<number, number>>({});
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [workoutPlanId, setWorkoutPlanId] = useState<string | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const elapsedTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const storedData = localStorage.getItem("quizData");
-    if (!storedData) {
-      navigate("/quiz");
-      return;
-    }
+    const initWorkout = async () => {
+      const storedData = localStorage.getItem("quizData");
+      if (!storedData) {
+        navigate("/quiz");
+        return;
+      }
 
-    const quizData = JSON.parse(storedData);
-    const workouts = quizData.aiWorkoutPlan || [];
-    
-    if (workouts[workoutIndex]) {
-      setWorkout(workouts[workoutIndex]);
-      // Initialize completed sets and data for all exercises
-      const initialSets: Record<number, boolean[]> = {};
-      const initialData: Record<number, Array<{ weight: string; reps: string }>> = {};
-      const initialCounts: Record<number, number> = {};
+      const quizData = JSON.parse(storedData);
+      const workouts = quizData.aiWorkoutPlan || [];
       
-      workouts[workoutIndex].exercises.forEach((exercise: any, idx: number) => {
-        const count = parseInt(exercise.sets) || 3;
-        initialSets[idx] = Array(count).fill(false);
-        initialCounts[idx] = count;
+      if (workouts[workoutIndex]) {
+        const currentWorkout = workouts[workoutIndex];
+        setWorkout(currentWorkout);
         
-        // Parse reps range (e.g., "8-10" or "12")
-        const repsRange = exercise.reps.split("-");
-        const defaultReps = repsRange[0];
+        // Start workout session in database
+        try {
+          const activePlan = await getActiveWorkoutPlan();
+          if (activePlan?.id) {
+            setWorkoutPlanId(activePlan.id);
+            const session = await startWorkoutSession(activePlan.id, currentWorkout.day);
+            setSessionId(session.id);
+          }
+        } catch (error) {
+          console.error("Error starting workout session:", error);
+        }
         
-        initialData[idx] = Array(count).fill({ weight: "", reps: defaultReps });
-      });
-      
-      setCompletedSets(initialSets);
-      setSetData(initialData);
-      setSetsCount(initialCounts);
-    } else {
-      navigate("/dashboard?tab=workout");
-    }
+        // Initialize completed sets and data for all exercises
+        const initialSets: Record<number, boolean[]> = {};
+        const initialData: Record<number, Array<{ weight: string; reps: string }>> = {};
+        const initialCounts: Record<number, number> = {};
+        
+        currentWorkout.exercises.forEach((exercise: any, idx: number) => {
+          const count = parseInt(exercise.sets) || 3;
+          initialSets[idx] = Array(count).fill(false);
+          initialCounts[idx] = count;
+          
+          // Parse reps range (e.g., "8-10" or "12")
+          const repsRange = exercise.reps.split("-");
+          const defaultReps = repsRange[0];
+          
+          initialData[idx] = Array(count).fill({ weight: "", reps: defaultReps });
+        });
+        
+        setCompletedSets(initialSets);
+        setSetData(initialData);
+        setSetsCount(initialCounts);
+      } else {
+        navigate("/dashboard?tab=workout");
+      }
+    };
+
+    initWorkout();
 
     // Create audio element for timer notification
     audioRef.current = new Audio();
@@ -164,11 +185,48 @@ const ActiveWorkout = () => {
     });
   };
 
-  const finishWorkout = () => {
-    toast({
-      title: "Treino concluído! 🎉",
-      description: "Parabéns por completar seu treino!",
-    });
+  const finishWorkout = async () => {
+    // Save exercise logs to database
+    if (sessionId && workout) {
+      try {
+        for (let idx = 0; idx < workout.exercises.length; idx++) {
+          const exercise = workout.exercises[idx];
+          const exerciseSets = setData[idx] || [];
+          const completed = completedSets[idx] || [];
+          
+          await saveExerciseLog(
+            sessionId,
+            exercise.name,
+            exercise,
+            exerciseSets.map((set, setIdx) => ({
+              ...set,
+              completed: completed[setIdx] || false,
+            }))
+          );
+        }
+        
+        // Mark session as completed
+        await completeWorkoutSession(sessionId);
+        
+        toast({
+          title: "Treino concluído! 🎉",
+          description: "Seu progresso foi salvo com sucesso!",
+        });
+      } catch (error) {
+        console.error("Error saving workout:", error);
+        toast({
+          title: "Treino concluído! 🎉",
+          description: "Parabéns por completar seu treino!",
+          variant: "default",
+        });
+      }
+    } else {
+      toast({
+        title: "Treino concluído! 🎉",
+        description: "Parabéns por completar seu treino!",
+      });
+    }
+    
     navigate("/dashboard?tab=workout");
   };
 

@@ -10,6 +10,7 @@ import { ArrowRight, ArrowLeft, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { celebrateAnswer, celebrateCompletion } from "@/lib/confetti";
 import { supabase } from "@/integrations/supabase/client";
+import { saveQuizResponses, saveWorkoutPlan } from "@/lib/workoutStorage";
 
 export interface Exercise {
   name: string;
@@ -574,7 +575,56 @@ const Quiz = () => {
         aiWorkoutPlan: aiWorkoutPlan
       };
 
+      // Save to localStorage (fallback)
       localStorage.setItem("quizData", JSON.stringify(finalData));
+
+      // Save to database
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Save quiz responses
+          await saveQuizResponses({
+            name: user.email?.split('@')[0] || 'User',
+            age: parseInt(quizData.age),
+            weight: parseFloat(quizData.currentWeight),
+            height: parseFloat(quizData.height),
+            goal: quizData.mainGoal,
+            experienceLevel: quizData.hasTrainedBefore === "yes" ? quizData.experienceTime : "beginner",
+            trainingFrequency: parseInt(quizData.trainingDays),
+            workoutDuration: quizData.workoutLength,
+            preferredTime: quizData.preferredTime,
+            gymAccess: quizData.equipmentAvailable === "gym",
+            availableEquipment: quizData.equipmentAvailable === "gym" ? ["gym"] : [],
+            physicalLimitations: quizData.hasLimitations === "yes" ? quizData.painDetails : undefined,
+            dietaryRestrictions: quizData.allergies === "yes" ? quizData.allergiesList : undefined,
+          });
+
+          // Save workout plan if AI generated one
+          if (aiWorkoutPlan && aiWorkoutPlan.length > 0) {
+            await saveWorkoutPlan({
+              name: "Plano Personalizado",
+              description: "Plano de treino gerado com IA baseado nas suas respostas",
+              goal: quizData.mainGoal,
+              days: aiWorkoutPlan.map((workout: Workout) => ({
+                day: workout.day,
+                focus: workout.description,
+                exercises: workout.exercises.map((ex: Exercise) => ({
+                  name: ex.name,
+                  sets: parseInt(ex.sets) || 3,
+                  reps: ex.reps,
+                  rest: ex.rest,
+                  tips: ex.tip,
+                })),
+              })),
+            });
+            toast.success("Progresso salvo com sucesso!");
+          }
+        }
+      } catch (error) {
+        console.error("Error saving to database:", error);
+        toast.error("Erro ao salvar progresso, mas continuando...");
+      }
+
       celebrateCompletion();
       toast.success("Seu plano personalizado está pronto!");
       setTimeout(() => navigate("/dashboard?tab=workout"), 1000);
