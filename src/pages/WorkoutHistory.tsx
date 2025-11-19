@@ -198,31 +198,70 @@ const WorkoutHistory = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Calendar Card */}
-          <Card className="p-6">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-primary" />
-              Calendário de Treinos
-            </h3>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              locale={ptBR}
-              className="rounded-md border pointer-events-auto"
-              modifiers={{
-                workout: workoutDates,
-              }}
-              modifiersStyles={{
-                workout: {
-                  fontWeight: 'bold',
-                  backgroundColor: 'hsl(var(--primary) / 0.2)',
-                  color: 'hsl(var(--primary))',
-                },
-              }}
-            />
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-4 h-4 rounded-sm bg-primary/20"></div>
-              <span>Dias com treino realizado</span>
+          <Card className="p-6 bg-gradient-card shadow-medium">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <CalendarIcon className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">Calendário de Treinos</h3>
+                <p className="text-sm text-muted-foreground">Selecione uma data para ver detalhes</p>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                locale={ptBR}
+                className="rounded-lg border-2 shadow-sm pointer-events-auto bg-background"
+                classNames={{
+                  months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                  month: "space-y-4",
+                  caption: "flex justify-center pt-1 relative items-center",
+                  caption_label: "text-base font-bold",
+                  nav: "space-x-1 flex items-center",
+                  nav_button: cn(
+                    "h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100 hover:bg-muted rounded-md transition-colors"
+                  ),
+                  nav_button_previous: "absolute left-1",
+                  nav_button_next: "absolute right-1",
+                  table: "w-full border-collapse space-y-1",
+                  head_row: "flex",
+                  head_cell: "text-muted-foreground rounded-md w-12 font-semibold text-[0.9rem]",
+                  row: "flex w-full mt-2",
+                  cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md",
+                  day: cn(
+                    "h-12 w-12 p-0 font-normal rounded-md hover:bg-accent hover:text-accent-foreground transition-colors",
+                    "aria-selected:opacity-100"
+                  ),
+                  day_range_end: "day-range-end",
+                  day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                  day_today: "bg-accent/50 text-accent-foreground font-bold border-2 border-primary",
+                  day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                  day_disabled: "text-muted-foreground opacity-50",
+                  day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                  day_hidden: "invisible",
+                }}
+                modifiers={{
+                  workout: workoutDates,
+                }}
+                modifiersClassNames={{
+                  workout: "bg-green-500/20 text-green-700 font-bold border-2 border-green-500 hover:bg-green-500/30",
+                }}
+              />
+            </div>
+            <div className="mt-6 space-y-2">
+              <div className="flex items-center gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-green-500/20 border-2 border-green-500"></div>
+                  <span className="text-muted-foreground">Treino realizado</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-accent/50 border-2 border-primary"></div>
+                  <span className="text-muted-foreground">Hoje</span>
+                </div>
+              </div>
             </div>
           </Card>
 
