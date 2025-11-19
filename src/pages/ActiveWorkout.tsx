@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ChevronDown, ChevronUp, Info, Plus } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Info, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
@@ -182,6 +182,42 @@ const ActiveWorkout = () => {
     toast({
       title: "Série adicionada",
       description: "Nova série adicionada ao exercício",
+    });
+  };
+
+  const removeSet = (exerciseIdx: number, setIdx: number) => {
+    const currentCount = setsCount[exerciseIdx] || 0;
+    
+    // Don't allow removing if there's only one set
+    if (currentCount <= 1) {
+      toast({
+        title: "Não é possível remover",
+        description: "É necessário pelo menos uma série por exercício",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSetsCount((prev) => ({
+      ...prev,
+      [exerciseIdx]: Math.max(1, (prev[exerciseIdx] || 0) - 1),
+    }));
+    
+    setCompletedSets((prev) => {
+      const newSets = { ...prev };
+      newSets[exerciseIdx] = newSets[exerciseIdx].filter((_, idx) => idx !== setIdx);
+      return newSets;
+    });
+    
+    setSetData((prev) => {
+      const newData = { ...prev };
+      newData[exerciseIdx] = newData[exerciseIdx].filter((_, idx) => idx !== setIdx);
+      return newData;
+    });
+    
+    toast({
+      title: "Série removida",
+      description: "Série excluída do exercício",
     });
   };
 
@@ -373,6 +409,15 @@ const ActiveWorkout = () => {
                               />
                               <span className="text-xs text-muted-foreground whitespace-nowrap">Rep.</span>
                             </div>
+
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
+                              onClick={() => removeSet(exerciseIdx, setIdx)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         );
                       })}
