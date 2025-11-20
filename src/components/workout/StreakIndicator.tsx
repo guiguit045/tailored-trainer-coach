@@ -9,13 +9,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface StreakIndicatorProps {
   onNewRecord?: () => void;
+  triggerCelebrationOnMount?: boolean;
 }
 
-const StreakIndicator = ({ onNewRecord }: StreakIndicatorProps) => {
+const StreakIndicator = ({ onNewRecord, triggerCelebrationOnMount = false }: StreakIndicatorProps) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [hasCelebrated, setHasCelebrated] = useState(false);
 
   useEffect(() => {
     loadStreak();
@@ -89,15 +91,23 @@ const StreakIndicator = ({ onNewRecord }: StreakIndicatorProps) => {
     }
   };
 
-  // Check for new record when component mounts or streak changes
+  // Check for new record when triggerCelebrationOnMount is true
   useEffect(() => {
-    if (currentStreak > 0 && currentStreak === maxStreak && currentStreak > 1) {
+    if (
+      triggerCelebrationOnMount &&
+      currentStreak > 0 && 
+      currentStreak === maxStreak && 
+      currentStreak > 1 &&
+      !hasCelebrated &&
+      !loading
+    ) {
       // Small delay to ensure animation plays after render
       setTimeout(() => {
         triggerCelebration();
+        setHasCelebrated(true);
       }, 500);
     }
-  }, [currentStreak, maxStreak]);
+  }, [currentStreak, maxStreak, hasCelebrated, loading, triggerCelebrationOnMount]);
 
   if (loading) return null;
 

@@ -29,12 +29,13 @@ const motivationalQuotes = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const { toast } = useToast();
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [dailyQuote, setDailyQuote] = useState<string>("");
   const [targetWeight, setTargetWeight] = useState<number>(0);
+  const [showNewRecordCelebration, setShowNewRecordCelebration] = useState(false);
   const defaultTab = searchParams.get("tab") || "workout";
 
   // Get daily motivational quote
@@ -177,6 +178,16 @@ const Dashboard = () => {
     fetchProfile();
   }, [navigate]);
 
+  // Check if coming from workout completion with new record
+  useEffect(() => {
+    const newRecord = searchParams.get("newRecord");
+    if (newRecord === "true") {
+      setShowNewRecordCelebration(true);
+      // Clean up URL
+      navigate("/dashboard?tab=workout", { replace: true });
+    }
+  }, [searchParams, navigate]);
+
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -269,7 +280,7 @@ const Dashboard = () => {
         </Card>
 
         <div className="mb-6">
-          <StreakIndicator />
+          <StreakIndicator triggerCelebrationOnMount={showNewRecordCelebration} />
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">

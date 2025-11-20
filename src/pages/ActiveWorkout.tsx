@@ -251,13 +251,20 @@ const ActiveWorkout = () => {
         // Mark session as completed
         await completeWorkoutSession(sessionId);
         
-        // Update streak
-        await updateUserStreak();
+        // Update streak and check if it's a new record
+        const streakResult = await updateUserStreak();
         
         toast({
           title: "Treino concluído! 🎉",
           description: "Continue assim para manter sua sequência!",
         });
+
+        // Navigate to dashboard with celebration flag if new record
+        if (streakResult?.isNewRecord) {
+          navigate("/dashboard?tab=workout&newRecord=true");
+        } else {
+          navigate("/dashboard?tab=workout");
+        }
       } catch (error) {
         console.error("Error saving workout:", error);
         toast({
@@ -265,15 +272,15 @@ const ActiveWorkout = () => {
           description: "Parabéns por completar seu treino!",
           variant: "default",
         });
+        navigate("/dashboard?tab=workout");
       }
     } else {
       toast({
         title: "Treino concluído! 🎉",
         description: "Parabéns por completar seu treino!",
       });
+      navigate("/dashboard?tab=workout");
     }
-    
-    navigate("/dashboard?tab=workout");
   };
 
   const formatTime = (seconds: number) => {
