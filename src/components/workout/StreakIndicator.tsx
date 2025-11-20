@@ -106,7 +106,7 @@ const StreakIndicator = ({ onNewRecord }: StreakIndicatorProps) => {
 
   return (
     <>
-      <Card className="p-6 bg-gradient-card shadow-medium relative overflow-hidden">
+      <Card className="p-3 md:p-6 bg-gradient-card shadow-medium relative overflow-hidden">
         {/* Background flame effect */}
         {isOnStreak && (
           <motion.div
@@ -123,21 +123,21 @@ const StreakIndicator = ({ onNewRecord }: StreakIndicatorProps) => {
         )}
 
         <div className="relative">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between mb-3 md:mb-4">
+            <div className="flex items-center gap-2 md:gap-3">
               <motion.div 
-                className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center"
+                className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center"
                 animate={isOnStreak ? {
                   scale: [1, 1.1, 1],
                   rotate: [0, 5, -5, 0]
                 } : {}}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <Flame className={`h-7 w-7 ${isOnStreak ? 'text-orange-500' : 'text-muted-foreground'}`} />
+                <Flame className={`h-5 w-5 md:h-7 md:w-7 ${isOnStreak ? 'text-orange-500' : 'text-muted-foreground'}`} />
               </motion.div>
               <div>
-                <h3 className="text-xl font-bold">Sequência de Treinos</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-base md:text-xl font-bold">Sequência de Treinos</h3>
+                <p className="text-xs md:text-sm text-muted-foreground">
                   {isOnStreak ? "Continue assim!" : "Comece uma sequência hoje"}
                 </p>
               </div>
@@ -148,7 +148,7 @@ const StreakIndicator = ({ onNewRecord }: StreakIndicatorProps) => {
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
               >
-                <Badge className="bg-yellow-500/20 text-yellow-700 border-yellow-500/30 gap-1">
+                <Badge className="bg-yellow-500/20 text-yellow-700 border-yellow-500/30 gap-1 text-xs">
                   <Trophy className="h-3 w-3" />
                   Recorde!
                 </Badge>
@@ -156,15 +156,15 @@ const StreakIndicator = ({ onNewRecord }: StreakIndicatorProps) => {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 md:gap-4">
             {/* Current Streak */}
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-primary/10 rounded-lg p-4 border-2 border-primary/20"
+              className="bg-primary/10 rounded-lg p-3 md:p-4 border-2 border-primary/20"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <Flame className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold text-muted-foreground">Atual</span>
+              <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                <Flame className="h-3 w-3 md:h-4 md:w-4 text-primary" />
+                <span className="text-xs md:text-sm font-semibold text-muted-foreground">Atual</span>
               </div>
               <AnimatePresence mode="wait">
                 <motion.div
@@ -173,7 +173,7 @@ const StreakIndicator = ({ onNewRecord }: StreakIndicatorProps) => {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.5, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="text-4xl font-bold text-primary"
+                  className="text-2xl md:text-4xl font-bold text-primary"
                 >
                   {currentStreak}
                 </motion.div>
@@ -184,12 +184,12 @@ const StreakIndicator = ({ onNewRecord }: StreakIndicatorProps) => {
             </motion.div>
 
             {/* Max Streak */}
-            <div className="bg-secondary/10 rounded-lg p-4 border-2 border-secondary/20">
-              <div className="flex items-center gap-2 mb-2">
-                <Trophy className="h-4 w-4 text-secondary" />
-                <span className="text-sm font-semibold text-muted-foreground">Recorde</span>
+            <div className="bg-secondary/10 rounded-lg p-3 md:p-4 border-2 border-secondary/20">
+              <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                <Trophy className="h-3 w-3 md:h-4 md:w-4 text-secondary" />
+                <span className="text-xs md:text-sm font-semibold text-muted-foreground">Recorde</span>
               </div>
-              <div className="text-4xl font-bold text-secondary">
+              <div className="text-2xl md:text-4xl font-bold text-secondary">
                 {maxStreak}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
