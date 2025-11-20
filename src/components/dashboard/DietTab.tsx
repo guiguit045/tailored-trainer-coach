@@ -291,13 +291,28 @@ export default function DietTab({
   useEffect(() => {
     const loadWaterIntake = async () => {
       setIsLoadingWater(true);
-      const intake = await getWaterIntake();
-      setWaterIntake(intake);
-      setIsLoadingWater(false);
-      setWaterConfettiTriggered(intake >= waterGoalMl);
+      try {
+        const intake = await getWaterIntake();
+        setWaterIntake(intake);
+        setWaterConfettiTriggered(intake >= waterGoalMl);
+      } catch (error) {
+        console.error('Error loading water intake:', error);
+        setWaterIntake(0);
+      } finally {
+        setIsLoadingWater(false);
+      }
     };
+    
     loadWaterIntake();
     loadDailyCalories();
+    
+    // Set up interval to check for date changes (every minute)
+    const interval = setInterval(() => {
+      loadWaterIntake();
+      loadDailyCalories();
+    }, 60000);
+    
+    return () => clearInterval(interval);
   }, [waterGoalMl]);
   const loadDailyCalories = async () => {
     setIsLoadingCalories(true);
@@ -321,10 +336,33 @@ export default function DietTab({
       }
     } catch (error) {
       console.error('Error loading calories:', error);
+      setTotalCalories(0);
     } finally {
       setIsLoadingCalories(false);
     }
   };
+  
+  // Reload data when component mounts or becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        const loadWaterIntake = async () => {
+          try {
+            const intake = await getWaterIntake();
+            setWaterIntake(intake);
+            setWaterConfettiTriggered(intake >= waterGoalMl);
+          } catch (error) {
+            console.error('Error loading water intake:', error);
+          }
+        };
+        loadWaterIntake();
+        loadDailyCalories();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [waterGoalMl]);
   
   const handleMealAdded = async () => {
     await loadDailyCalories();
@@ -332,27 +370,40 @@ export default function DietTab({
     setMealHistoryKey(prev => prev + 1);
   };
   const handleAddWater = async () => {
-    // Play drinking sound
-    if (soundEnabled) {
-      waterSound.playDrinkingSound();
-    }
-    const newIntake = await addWaterIntake(200);
-    setWaterIntake(newIntake);
-    toast({
-      title: "Água adicionada! 💧",
-      description: `Você bebeu ${newIntake}ml de ${waterGoalMl}ml hoje`
-    });
-    if (newIntake >= waterGoalMl && !waterConfettiTriggered) {
-      celebrateCompletion();
-      setWaterConfettiTriggered(true);
-
-      // Play achievement sound
+    try {
+      // Play drinking sound
       if (soundEnabled) {
-        setTimeout(() => waterSound.playAchievementSound(), 300);
+        waterSound.playDrinkingSound();
       }
+      
+      const newIntake = await addWaterIntake(200);
+      setWaterIntake(newIntake);
+      
       toast({
-        title: "Meta de água atingida! 🎉",
-        description: "Parabéns! Você completou sua meta de hidratação hoje!"
+        title: "Água adicionada! 💧",
+        description: `Você bebeu ${newIntake}ml de ${waterGoalMl}ml hoje`
+      });
+      
+      if (newIntake >= waterGoalMl && !waterConfettiTriggered) {
+        celebrateCompletion();
+        setWaterConfettiTriggered(true);
+
+        // Play achievement sound
+        if (soundEnabled) {
+          setTimeout(() => waterSound.playAchievementSound(), 300);
+        }
+        
+        toast({
+          title: "Meta de água atingida! 🎉",
+          description: "Parabéns! Você completou sua meta de hidratação hoje!"
+        });
+      }
+    } catch (error) {
+      console.error('Error adding water:', error);
+      toast({
+        title: "Erro ao adicionar água",
+        description: "Tente novamente",
+        variant: "destructive"
       });
     }
   };
