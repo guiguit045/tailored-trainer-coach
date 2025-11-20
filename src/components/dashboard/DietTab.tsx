@@ -8,6 +8,7 @@ import { getWaterIntake, addWaterIntake } from "@/lib/workoutStorage";
 import { celebrateCompletion } from "@/lib/confetti";
 import { supabase } from "@/integrations/supabase/client";
 import MealPhotoCapture from "./MealPhotoCapture";
+import MealHistory from "./MealHistory";
 import type { QuizData } from "@/pages/Quiz";
 
 interface DietTabProps {
@@ -211,6 +212,9 @@ export default function DietTab({ quizData }: DietTabProps) {
     <div className="space-y-6">
       {/* Meal Photo Capture */}
       <MealPhotoCapture onMealAdded={loadDailyCalories} />
+
+      {/* Meal History */}
+      <MealHistory onMealUpdated={loadDailyCalories} />
 
       {/* Calorie Counter */}
       <Card className="p-6 bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
