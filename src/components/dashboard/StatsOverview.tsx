@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell, Flame, Droplet, Target } from "lucide-react";
+import { format } from "date-fns";
 
 interface Stats {
   totalWorkouts: number;
@@ -31,7 +32,7 @@ export default function StatsOverview() {
       const today = new Date();
       const sevenDaysAgo = new Date(today);
       sevenDaysAgo.setDate(today.getDate() - 6);
-      const weekStart = sevenDaysAgo.toISOString().split('T')[0];
+      const weekStart = format(sevenDaysAgo, 'yyyy-MM-dd');
 
       // Total workouts (all time)
       const { count: totalWorkouts } = await supabase

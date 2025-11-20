@@ -71,7 +71,7 @@ export default function MealHistory({ onMealUpdated }: MealHistoryProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(new Date(), 'yyyy-MM-dd');
       
       const { data, error } = await supabase
         .from('consumed_meals')
