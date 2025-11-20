@@ -17,12 +17,24 @@ import {
   Apple,
   AlertCircle,
   CheckCircle2,
-  Edit
+  Edit,
+  Trash2
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { getQuizResponses } from "@/lib/workoutStorage";
 import { supabase } from "@/integrations/supabase/client";
 import AvatarUpload from "@/components/profile/AvatarUpload";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileData {
   name: string;
@@ -46,8 +58,11 @@ interface ProfileData {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -128,6 +143,76 @@ const Profile = () => {
       "endurance": "Resistência"
     };
     return goals[goal || ""] || goal;
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não encontrado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const userId = user.id;
+
+      // Delete all user data from all tables
+      // First get workout sessions to delete exercise logs
+      const { data: sessions } = await supabase
+        .from('workout_sessions')
+        .select('id')
+        .eq('user_id', userId);
+
+      // Delete exercise logs for all sessions
+      if (sessions && sessions.length > 0) {
+        const sessionIds = sessions.map(s => s.id);
+        await supabase
+          .from('exercise_logs')
+          .delete()
+          .in('workout_session_id', sessionIds);
+      }
+
+      // Delete all other user data
+      await supabase.from('workout_sessions').delete().eq('user_id', userId);
+      await supabase.from('workout_plans').delete().eq('user_id', userId);
+      await supabase.from('consumed_meals').delete().eq('user_id', userId);
+      await supabase.from('water_intake').delete().eq('user_id', userId);
+      await supabase.from('meal_completions').delete().eq('user_id', userId);
+      await supabase.from('body_weight_logs').delete().eq('user_id', userId);
+      await supabase.from('user_goals').delete().eq('user_id', userId);
+      await supabase.from('quiz_responses').delete().eq('user_id', userId);
+      await supabase.from('profiles').delete().eq('user_id', userId);
+
+      // Clear localStorage
+      localStorage.clear();
+
+      // Sign out and delete auth user
+      await supabase.auth.signOut();
+
+      toast({
+        title: "Conta excluída",
+        description: "Sua conta e todos os dados foram removidos com sucesso",
+      });
+
+      // Redirect to welcome page
+      navigate("/welcome");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast({
+        title: "Erro ao excluir conta",
+        description: "Ocorreu um erro ao tentar excluir sua conta. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
   };
 
   const getExperienceLabel = (exp?: string) => {
@@ -430,7 +515,64 @@ const Profile = () => {
             </Button>
           </Card>
         </motion.div>
+
+        {/* Delete Account Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-6"
+        >
+          <Card className="p-6 border-destructive/50">
+            <div className="text-center">
+              <h3 className="text-lg font-bold mb-2 text-destructive">Zona de Perigo</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos.
+              </p>
+              <Button 
+                variant="destructive" 
+                onClick={() => setShowDeleteDialog(true)}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Excluir Conta Permanentemente
+              </Button>
+            </div>
+          </Card>
+        </motion.div>
       </main>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso irá permanentemente excluir sua conta
+              e remover todos os seus dados dos nossos servidores, incluindo:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Perfil e informações pessoais</li>
+                <li>Histórico de treinos completo</li>
+                <li>Registro de refeições e água</li>
+                <li>Planos de treino personalizados</li>
+                <li>Todo o progresso e estatísticas</li>
+              </ul>
+              <p className="mt-3 font-semibold text-destructive">
+                Você precisará criar uma nova conta para usar o aplicativo novamente.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? "Excluindo..." : "Sim, excluir permanentemente"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
