@@ -240,7 +240,19 @@ export default function MealHistory({ onMealUpdated }: MealHistoryProps) {
           <div className="space-y-3">
             {meals.map((meal) => (
               <Card key={meal.id} className="p-4">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  {/* Meal Photo */}
+                  {meal.photo_url && (
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={meal.photo_url} 
+                        alt={meal.meal_name}
+                        className="w-20 h-20 object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
+
+                  {/* Meal Info */}
                   <div className="flex-1 space-y-2">
                     <div className="flex items-start justify-between">
                       <div>
@@ -270,6 +282,7 @@ export default function MealHistory({ onMealUpdated }: MealHistoryProps) {
                     </div>
                   </div>
 
+                  {/* Action Buttons */}
                   <div className="flex flex-col gap-2">
                     <Button
                       size="icon"
