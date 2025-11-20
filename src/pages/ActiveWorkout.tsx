@@ -13,12 +13,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Info, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
 import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog, updateUserStreak } from "@/lib/workoutStorage";
-
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -114,7 +113,8 @@ const ActiveWorkout = () => {
     };
   }, [navigate, workoutIndex, workoutStartTime]);
 
-    const startRestTimer = (restSeconds: number) => {
+  const startRestTimer = (restSeconds: number) => {
+    setIsResting(true);
     setRestTimeLeft(restSeconds);
     
     if (timerRef.current) clearInterval(timerRef.current);
@@ -282,7 +282,6 @@ const ActiveWorkout = () => {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-
   if (!workout) return null;
 
   const totalSets = workout.exercises.reduce((acc, ex) => acc + parseInt(ex.sets), 0);
@@ -293,7 +292,6 @@ const ActiveWorkout = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-
       {/* Header */}
       <header className="bg-background border-b sticky top-0 z-10 px-4 py-3">
         <div className="flex items-center gap-3">
@@ -328,8 +326,8 @@ const ActiveWorkout = () => {
 
           return (
             <Card key={exerciseIdx} className="overflow-hidden">
-              <div 
-                className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+              <button
+                className="w-full p-4 text-left hover:bg-muted/50 transition-colors"
                 onClick={() => toggleExerciseExpanded(exerciseIdx)}
               >
                 <div className="flex items-start gap-3">
@@ -343,6 +341,20 @@ const ActiveWorkout = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast({
+                          title: "Dica",
+                          description: exercise.tip,
+                        });
+                      }}
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
                     {isExpanded ? (
                       <ChevronUp className="h-5 w-5 text-muted-foreground" />
                     ) : (
@@ -350,7 +362,7 @@ const ActiveWorkout = () => {
                     )}
                   </div>
                 </div>
-              </div>
+              </button>
 
               <AnimatePresence>
                 {isExpanded && (
@@ -454,7 +466,6 @@ const ActiveWorkout = () => {
           REGISTRAR A PRÓXIMA SÉRIE
         </Button>
       </div>
-
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirmation} onOpenChange={(open) => !open && setDeleteConfirmation(null)}>

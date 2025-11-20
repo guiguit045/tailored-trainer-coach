@@ -3,14 +3,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Apple, Settings, LogOut, BarChart3, User, Target, TrendingUp, BookOpen } from "lucide-react";
+import { Dumbbell, Apple, Settings, LogOut, BarChart3, User, Target, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { QuizData } from "./Quiz";
 import WorkoutTab from "@/components/dashboard/WorkoutTab";
 import DietTab from "@/components/dashboard/DietTab";
-import { ExerciseLibraryTab } from "@/components/dashboard/ExerciseLibraryTab";
 import StreakIndicator from "@/components/workout/StreakIndicator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getQuizResponses, getActiveWorkoutPlan } from "@/lib/workoutStorage";
@@ -274,7 +273,7 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 h-auto p-1">
             <TabsTrigger value="workout" className="py-3 data-[state=active]:bg-gradient-hero data-[state=active]:text-primary-foreground">
               <Dumbbell className="mr-2 h-5 w-5" />
               Treinos
@@ -282,10 +281,6 @@ const Dashboard = () => {
             <TabsTrigger value="diet" className="py-3 data-[state=active]:bg-gradient-hero data-[state=active]:text-primary-foreground">
               <Apple className="mr-2 h-5 w-5" />
               Dieta
-            </TabsTrigger>
-            <TabsTrigger value="library" className="py-3 data-[state=active]:bg-gradient-hero data-[state=active]:text-primary-foreground">
-              <BookOpen className="mr-2 h-5 w-5" />
-              Biblioteca
             </TabsTrigger>
           </TabsList>
 
@@ -310,18 +305,6 @@ const Dashboard = () => {
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
               <DietTab quizData={quizData} />
-            </motion.div>
-          </TabsContent>
-
-          <TabsContent value="library" className="m-0">
-            <motion.div
-              key="library"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            >
-              <ExerciseLibraryTab />
             </motion.div>
           </TabsContent>
         </Tabs>
