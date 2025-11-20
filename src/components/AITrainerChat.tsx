@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { Sparkles, X, Send, Loader2, Mic, MicOff, MessageSquare } from "lucide-react";
+import { Sparkles, X, Send, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { RealtimeChat } from "@/utils/RealtimeAudio";
 
 interface Message {
   role: "user" | "assistant";
@@ -15,7 +14,6 @@ interface Message {
 }
 
 export const AITrainerChat = () => {
-  const [mode, setMode] = useState<"text" | "voice">("text");
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -25,10 +23,7 @@ export const AITrainerChat = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isVoiceActive, setIsVoiceActive] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const realtimeChatRef = useRef<RealtimeChat | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -73,85 +68,6 @@ export const AITrainerChat = () => {
       setIsLoading(false);
     }
   };
-
-  const startVoiceMode = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Request microphone permission
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      const tokenEndpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/realtime-token`;
-      
-      const handleMessage = (event: any) => {
-        console.log("Voice event:", event.type);
-        
-        if (event.type === "response.audio_transcript.delta") {
-          setMessages(prev => {
-            const last = prev[prev.length - 1];
-            if (last?.role === "assistant") {
-              return prev.map((m, i) => 
-                i === prev.length - 1 
-                  ? { ...m, content: m.content + event.delta }
-                  : m
-              );
-            }
-            return [...prev, { role: "assistant", content: event.delta }];
-          });
-        } else if (event.type === "conversation.item.input_audio_transcription.completed") {
-          setMessages(prev => [...prev, {
-            role: "user",
-            content: event.transcript
-          }]);
-        }
-      };
-
-      const handleSpeakingChange = (speaking: boolean) => {
-        setIsSpeaking(speaking);
-      };
-
-      realtimeChatRef.current = new RealtimeChat(handleMessage, handleSpeakingChange);
-      await realtimeChatRef.current.init(tokenEndpoint);
-      
-      setIsVoiceActive(true);
-      setMode("voice");
-      
-      toast({
-        title: "Modo de voz ativado",
-        description: "Fale com o TrainerIA!"
-      });
-    } catch (error) {
-      console.error("Error starting voice mode:", error);
-      toast({
-        title: "Erro ao ativar modo de voz",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const stopVoiceMode = () => {
-    realtimeChatRef.current?.disconnect();
-    realtimeChatRef.current = null;
-    setIsVoiceActive(false);
-    setIsSpeaking(false);
-    setMode("text");
-    
-    toast({
-      title: "Modo de voz desativado",
-      description: "Voltando para modo texto"
-    });
-  };
-
-  useEffect(() => {
-    return () => {
-      if (realtimeChatRef.current) {
-        realtimeChatRef.current.disconnect();
-      }
-    };
-  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -249,61 +165,7 @@ export const AITrainerChat = () => {
                 </div>
               </ScrollArea>
 
-              {/* Mode Toggle */}
-              <div className="border-t bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50">
-                <div className="container mx-auto px-4 py-3 max-w-3xl">
-                  <div className="flex items-center justify-center gap-2">
-                    <Button
-                      variant={mode === "text" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        if (isVoiceActive) stopVoiceMode();
-                        setMode("text");
-                      }}
-                      disabled={isLoading}
-                    >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Texto
-                    </Button>
-                    <Button
-                      variant={mode === "voice" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        if (mode === "voice") {
-                          stopVoiceMode();
-                        } else {
-                          startVoiceMode();
-                        }
-                      }}
-                      disabled={isLoading}
-                    >
-                      {isVoiceActive ? (
-                        <MicOff className="h-4 w-4 mr-2" />
-                      ) : (
-                        <Mic className="h-4 w-4 mr-2" />
-                      )}
-                      Voz
-                    </Button>
-                  </div>
-                  {isVoiceActive && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-3 text-center"
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <div className={`h-2 w-2 rounded-full ${isSpeaking ? 'bg-primary animate-pulse' : 'bg-muted'}`} />
-                        <p className="text-sm text-muted-foreground">
-                          {isSpeaking ? "TrainerIA está falando..." : "Escutando..."}
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-
               {/* Input */}
-              {mode === "text" && (
               <div className="border-t bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50">
                 <div className="container mx-auto px-4 py-4 max-w-3xl">
                   <div className="flex gap-2">
@@ -325,7 +187,6 @@ export const AITrainerChat = () => {
                   </div>
                 </div>
               </div>
-              )}
             </div>
           </motion.div>
         )}
