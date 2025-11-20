@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_weight_logs: {
+        Row: {
+          created_at: string
+          id: string
+          log_date: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          log_date?: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+          weight: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          log_date?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       consumed_meals: {
         Row: {
           calories: number
@@ -223,6 +253,33 @@ export type Database = {
           user_id?: string
           weight?: number | null
           workout_duration?: string | null
+        }
+        Relationships: []
+      }
+      user_goals: {
+        Row: {
+          created_at: string
+          daily_calorie_goal: number | null
+          daily_water_goal_ml: number | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_calorie_goal?: number | null
+          daily_water_goal_ml?: number | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_calorie_goal?: number | null
+          daily_water_goal_ml?: number | null
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

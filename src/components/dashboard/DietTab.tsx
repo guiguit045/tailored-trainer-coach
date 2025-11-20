@@ -9,6 +9,11 @@ import { celebrateCompletion } from "@/lib/confetti";
 import { supabase } from "@/integrations/supabase/client";
 import MealPhotoCapture from "./MealPhotoCapture";
 import MealHistory from "./MealHistory";
+import WeightTracker from "./WeightTracker";
+import CalorieChart from "./CalorieChart";
+import StatsOverview from "./StatsOverview";
+import GoalEditor from "./GoalEditor";
+import { calculateNutritionGoals } from "@/lib/nutritionCalculator";
 import type { QuizData } from "@/pages/Quiz";
 
 interface DietTabProps {
@@ -24,8 +29,8 @@ interface Meal {
 }
 
 const generateDiet = (quizData: QuizData): Meal[] => {
-  const isWeightLoss = quizData.mainGoal === "weight-loss";
-  const isMuscleGain = quizData.mainGoal === "muscle-gain";
+  const isWeightLoss = quizData.mainGoal === "lose";
+  const isMuscleGain = quizData.mainGoal === "gain";
   const isVegetarian = quizData.eatsMeat === "no";
   const canCook = quizData.canCook === "yes";
 
@@ -137,13 +142,18 @@ export default function DietTab({ quizData }: DietTabProps) {
   const [isLoadingCalories, setIsLoadingCalories] = useState(true);
 
   const meals = generateDiet(quizData);
-  const waterGoal = 2000; // 2 litros = 2000ml
-  const waterProgress = (waterIntake / waterGoal) * 100;
   
-  // Calculate daily calorie goal based on user goal
-  const isWeightLoss = quizData.mainGoal === "weight-loss";
-  const isMuscleGain = quizData.mainGoal === "muscle-gain";
-  const calorieGoal = isWeightLoss ? 1500 : isMuscleGain ? 2500 : 2000;
+  // Calculate goals using scientific formulas
+  const calculatedGoals = calculateNutritionGoals(quizData);
+  const [calorieGoal, setCalorieGoal] = useState(calculatedGoals.calories);
+  const [waterGoalMl, setWaterGoalMl] = useState(calculatedGoals.waterMl);
+
+  const handleGoalsUpdated = (newCalories: number, newWater: number) => {
+    setCalorieGoal(newCalories);
+    setWaterGoalMl(newWater);
+  };
+
+  const waterProgress = (waterIntake / waterGoalMl) * 100;
   const calorieProgress = (totalCalories / calorieGoal) * 100;
 
   useEffect(() => {
@@ -152,11 +162,11 @@ export default function DietTab({ quizData }: DietTabProps) {
       const intake = await getWaterIntake();
       setWaterIntake(intake);
       setIsLoadingWater(false);
-      setWaterConfettiTriggered(intake >= waterGoal);
+      setWaterConfettiTriggered(intake >= waterGoalMl);
     };
     loadWaterIntake();
     loadDailyCalories();
-  }, []);
+  }, [waterGoalMl]);
 
   const loadDailyCalories = async () => {
     setIsLoadingCalories(true);
@@ -193,10 +203,10 @@ export default function DietTab({ quizData }: DietTabProps) {
     
     toast({
       title: "Água adicionada! 💧",
-      description: `Você bebeu ${newIntake}ml de ${waterGoal}ml hoje`,
+      description: `Você bebeu ${newIntake}ml de ${waterGoalMl}ml hoje`,
     });
 
-    if (newIntake >= waterGoal && !waterConfettiTriggered) {
+    if (newIntake >= waterGoalMl && !waterConfettiTriggered) {
       celebrateCompletion();
       setWaterConfettiTriggered(true);
       toast({
@@ -209,8 +219,26 @@ export default function DietTab({ quizData }: DietTabProps) {
   const hasAllergies = quizData.allergies && quizData.allergies !== "none";
 
   return (
-    <div className="space-y-6">
-      {/* Meal Photo Capture */}
+    <div className="space-y-8 pb-20">
+      {/* Statistics Overview */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold">Estatísticas</h2>
+          <GoalEditor 
+            defaultCalories={calculatedGoals.calories}
+            defaultWater={calculatedGoals.waterMl}
+            onGoalsUpdated={handleGoalsUpdated}
+          />
+        </div>
+        <StatsOverview />
+      </div>
+
+      {/* Weight Tracker */}
+      <WeightTracker />
+
+      {/* Calorie Chart */}
+      <CalorieChart />
+
       <MealPhotoCapture onMealAdded={loadDailyCalories} />
 
       {/* Calorie Counter */}
@@ -247,7 +275,7 @@ export default function DietTab({ quizData }: DietTabProps) {
               <h3 className="text-lg font-semibold text-foreground">Água de Hoje</h3>
             </div>
             <Badge variant="outline" className="text-sm">
-              {waterIntake} / {waterGoal} ml
+              {waterIntake} / {waterGoalMl} ml
             </Badge>
           </div>
           
@@ -271,7 +299,7 @@ export default function DietTab({ quizData }: DietTabProps) {
           <p className="text-sm text-muted-foreground text-center">
             {waterProgress >= 100 
               ? "Meta de hidratação atingida! 🎉" 
-              : `Faltam ${waterGoal - waterIntake}ml para sua meta`}
+              : `Faltam ${waterGoalMl - waterIntake}ml para sua meta`}
           </p>
         </div>
       </Card>
