@@ -54,40 +54,21 @@ export default function WaterGlass({ percentage }: WaterGlassProps) {
 
         {/* Water with wave animation */}
         <g clipPath="url(#glassClip)">
-          <motion.rect
-            x="20"
-            y={160 - (140 * clampedPercentage) / 100}
-            width="80"
-            height={(140 * clampedPercentage) / 100}
-            fill="url(#waterGradient)"
-            initial={{ y: 160 }}
-            animate={{ 
-              y: 160 - (140 * clampedPercentage) / 100,
-            }}
-            transition={{ 
-              duration: 0.8,
-              ease: "easeOut"
-            }}
-          />
-          
-          {/* Wave effect on top of water */}
           <motion.path
-            d={`M 20 ${160 - (140 * clampedPercentage) / 100} Q 35 ${160 - (140 * clampedPercentage) / 100 - 3} 50 ${160 - (140 * clampedPercentage) / 100} T 80 ${160 - (140 * clampedPercentage) / 100} T 110 ${160 - (140 * clampedPercentage) / 100}`}
-            fill="none"
-            stroke="#60a5fa"
-            strokeWidth="2"
-            opacity="0.6"
+            d={`M 20 ${160 - (140 * clampedPercentage) / 100} Q 35 ${160 - (140 * clampedPercentage) / 100 - 3} 50 ${160 - (140 * clampedPercentage) / 100} T 80 ${160 - (140 * clampedPercentage) / 100} T 100 ${160 - (140 * clampedPercentage) / 100} L 100 160 L 20 160 Z`}
+            fill="url(#waterGradient)"
+            initial={{ 
+              d: `M 20 160 Q 35 157 50 160 T 80 160 T 100 160 L 100 160 L 20 160 Z`
+            }}
             animate={{
               d: [
-                `M 20 ${160 - (140 * clampedPercentage) / 100} Q 35 ${160 - (140 * clampedPercentage) / 100 - 3} 50 ${160 - (140 * clampedPercentage) / 100} T 80 ${160 - (140 * clampedPercentage) / 100} T 110 ${160 - (140 * clampedPercentage) / 100}`,
-                `M 20 ${160 - (140 * clampedPercentage) / 100} Q 35 ${160 - (140 * clampedPercentage) / 100 + 3} 50 ${160 - (140 * clampedPercentage) / 100} T 80 ${160 - (140 * clampedPercentage) / 100} T 110 ${160 - (140 * clampedPercentage) / 100}`,
-                `M 20 ${160 - (140 * clampedPercentage) / 100} Q 35 ${160 - (140 * clampedPercentage) / 100 - 3} 50 ${160 - (140 * clampedPercentage) / 100} T 80 ${160 - (140 * clampedPercentage) / 100} T 110 ${160 - (140 * clampedPercentage) / 100}`,
+                `M 20 ${160 - (140 * clampedPercentage) / 100} Q 35 ${160 - (140 * clampedPercentage) / 100 - 3} 50 ${160 - (140 * clampedPercentage) / 100} T 80 ${160 - (140 * clampedPercentage) / 100} T 100 ${160 - (140 * clampedPercentage) / 100} L 100 160 L 20 160 Z`,
+                `M 20 ${160 - (140 * clampedPercentage) / 100} Q 35 ${160 - (140 * clampedPercentage) / 100 + 3} 50 ${160 - (140 * clampedPercentage) / 100} T 80 ${160 - (140 * clampedPercentage) / 100} T 100 ${160 - (140 * clampedPercentage) / 100} L 100 160 L 20 160 Z`,
+                `M 20 ${160 - (140 * clampedPercentage) / 100} Q 35 ${160 - (140 * clampedPercentage) / 100 - 3} 50 ${160 - (140 * clampedPercentage) / 100} T 80 ${160 - (140 * clampedPercentage) / 100} T 100 ${160 - (140 * clampedPercentage) / 100} L 100 160 L 20 160 Z`,
               ]
             }}
             transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
+              d: { duration: 2, repeat: Infinity, ease: "easeInOut" }
             }}
           />
 
