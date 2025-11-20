@@ -461,7 +461,7 @@ export default function DietTab({ quizData }: DietTabProps) {
         />
       </div>
 
-      <MealPhotoCapture onMealAdded={loadDailyCalories} />
+      <MealPhotoCapture onMealAdded={loadDailyCalories} quizData={quizData} />
 
       {/* Calorie Counter */}
       <Card className="p-6 bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
