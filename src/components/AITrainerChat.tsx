@@ -82,9 +82,27 @@ export const AITrainerChat = () => {
       <AnimatePresence>
         {!isOpen && (
           <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
+            initial={{ scale: 0, opacity: 0, y: 100 }}
+            animate={{ 
+              scale: 1, 
+              opacity: 1, 
+              y: 0,
+              transition: {
+                type: "spring",
+                stiffness: 260,
+                damping: 20
+              }
+            }}
+            exit={{ 
+              scale: 0, 
+              opacity: 0, 
+              y: 100,
+              transition: {
+                duration: 0.2
+              }
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             className="fixed bottom-6 right-6 z-50"
           >
             <Button
@@ -92,7 +110,19 @@ export const AITrainerChat = () => {
               size="lg"
               className="h-16 w-16 rounded-full shadow-lg bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300"
             >
-              <Sparkles className="h-8 w-8" />
+              <motion.div
+                animate={{ 
+                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.1, 1.1, 1]
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatDelay: 3
+                }}
+              >
+                <Sparkles className="h-8 w-8" />
+              </motion.div>
             </Button>
           </motion.div>
         )}
@@ -102,9 +132,25 @@ export const AITrainerChat = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              y: 0,
+              transition: {
+                type: "spring",
+                stiffness: 300,
+                damping: 30
+              }
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.95, 
+              y: 20,
+              transition: {
+                duration: 0.2
+              }
+            }}
             className="fixed inset-0 z-50 bg-background"
           >
             <div className="flex flex-col h-full">
@@ -136,8 +182,17 @@ export const AITrainerChat = () => {
                   {messages.map((message, index) => (
                     <motion.div
                       key={index}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, x: message.role === "user" ? 20 : -20, scale: 0.95 }}
+                      animate={{ 
+                        opacity: 1, 
+                        x: 0, 
+                        scale: 1,
+                        transition: {
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 25
+                        }
+                      }}
                       className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <Card
@@ -158,7 +213,46 @@ export const AITrainerChat = () => {
                       className="flex justify-start"
                     >
                       <Card className="max-w-[80%] p-4 bg-muted">
-                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <div className="flex gap-1.5">
+                          <motion.div
+                            className="w-2 h-2 rounded-full bg-primary"
+                            animate={{ 
+                              scale: [1, 1.2, 1],
+                              opacity: [0.5, 1, 0.5]
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                          />
+                          <motion.div
+                            className="w-2 h-2 rounded-full bg-primary"
+                            animate={{ 
+                              scale: [1, 1.2, 1],
+                              opacity: [0.5, 1, 0.5]
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                              delay: 0.2
+                            }}
+                          />
+                          <motion.div
+                            className="w-2 h-2 rounded-full bg-primary"
+                            animate={{ 
+                              scale: [1, 1.2, 1],
+                              opacity: [0.5, 1, 0.5]
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                              delay: 0.4
+                            }}
+                          />
+                        </div>
                       </Card>
                     </motion.div>
                   )}
@@ -168,7 +262,12 @@ export const AITrainerChat = () => {
               {/* Input */}
               <div className="border-t bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50">
                 <div className="container mx-auto px-4 py-4 max-w-3xl">
-                  <div className="flex gap-2">
+                  <motion.div 
+                    className="flex gap-2"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
                     <Input
                       placeholder="Digite sua pergunta sobre treino ou dieta..."
                       value={input}
@@ -177,14 +276,19 @@ export const AITrainerChat = () => {
                       disabled={isLoading}
                       className="flex-1"
                     />
-                    <Button
-                      onClick={sendMessage}
-                      disabled={isLoading || !input.trim()}
-                      size="icon"
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
+                      <Button
+                        onClick={sendMessage}
+                        disabled={isLoading || !input.trim()}
+                        size="icon"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  </motion.div>
                 </div>
               </div>
             </div>
