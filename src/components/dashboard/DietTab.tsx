@@ -213,9 +213,6 @@ export default function DietTab({ quizData }: DietTabProps) {
       {/* Meal Photo Capture */}
       <MealPhotoCapture onMealAdded={loadDailyCalories} />
 
-      {/* Meal History */}
-      <MealHistory onMealUpdated={loadDailyCalories} />
-
       {/* Calorie Counter */}
       <Card className="p-6 bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
         <div className="space-y-3">
@@ -278,6 +275,9 @@ export default function DietTab({ quizData }: DietTabProps) {
           </p>
         </div>
       </Card>
+
+      {/* Meal History */}
+      <MealHistory onMealUpdated={loadDailyCalories} />
 
       {/* Meal Suggestion Cards */}
       <div className="grid gap-4">
