@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coffee, Sun, Moon, Apple, Info, Droplet, ChevronDown } from "lucide-react";
+import { Coffee, Sun, Moon, Apple, Info, Droplet, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getWaterIntake, addWaterIntake } from "@/lib/workoutStorage";
 import { celebrateCompletion } from "@/lib/confetti";
@@ -19,11 +19,15 @@ interface DietTabProps {
   quizData: QuizData;
 }
 
+interface MealVariation {
+  foods: string[];
+  why: string;
+}
+
 interface Meal {
   name: string;
   icon: any;
-  foods: string[];
-  why: string;
+  variations: MealVariation[];
   calories: string;
 }
 
@@ -31,102 +35,306 @@ const generateDiet = (quizData: QuizData): Meal[] => {
   const isWeightLoss = quizData.mainGoal === "lose";
   const isMuscleGain = quizData.mainGoal === "gain";
   const isVegetarian = quizData.eatsMeat === "no";
-  const canCook = quizData.canCook === "yes";
 
   const breakfast: Meal = {
     name: "Café da Manhã",
     icon: Coffee,
-    foods: [],
-    why: "",
+    variations: [],
     calories: ""
   };
 
   const lunch: Meal = {
     name: "Almoço",
     icon: Sun,
-    foods: [],
-    why: "",
+    variations: [],
     calories: ""
   };
 
   const snack: Meal = {
     name: "Lanche",
     icon: Apple,
-    foods: [],
-    why: "",
+    variations: [],
     calories: ""
   };
 
   const dinner: Meal = {
     name: "Jantar",
     icon: Moon,
-    foods: [],
-    why: "",
+    variations: [],
     calories: ""
   };
 
   if (isWeightLoss) {
-    breakfast.foods = isVegetarian 
-      ? ["2 ovos mexidos", "2 fatias de pão integral", "1 xícara de chá verde", "1 fruta (maçã ou banana)"]
-      : ["3 ovos mexidos", "2 fatias de pão integral", "1 xícara de chá verde ou café sem açúcar"];
-    breakfast.why = "Rico em proteínas para saciedade. Chá verde acelera metabolismo.";
     breakfast.calories = "~350 kcal";
+    breakfast.variations = isVegetarian ? [
+      {
+        foods: ["2 ovos mexidos", "2 fatias de pão integral", "1 xícara de chá verde", "1 fruta (maçã ou banana)"],
+        why: "Rico em proteínas para saciedade. Chá verde acelera metabolismo."
+      },
+      {
+        foods: ["Iogurte natural (200g)", "3 colheres de granola", "1 banana", "1 colher de mel"],
+        why: "Probióticos para digestão. Carboidratos de absorção gradual mantêm energia."
+      },
+      {
+        foods: ["Panqueca de banana e aveia (2 unidades)", "1 colher de pasta de amendoim", "Café ou chá"],
+        why: "Carboidratos complexos e proteína vegetal. Receita saudável e saborosa."
+      }
+    ] : [
+      {
+        foods: ["3 ovos mexidos", "2 fatias de pão integral", "1 xícara de chá verde ou café sem açúcar"],
+        why: "Rico em proteínas para saciedade. Chá verde acelera metabolismo."
+      },
+      {
+        foods: ["Omelete de 2 ovos com espinafre", "1 fatia de queijo branco", "1 torrada integral", "Café"],
+        why: "Proteína de alta qualidade. Espinafre rico em ferro e fibras."
+      },
+      {
+        foods: ["Tapioca com ovo e queijo cottage", "1 fruta (mamão ou melão)", "Chá verde"],
+        why: "Sem glúten, leve e nutritivo. Queijo cottage é rico em proteína."
+      }
+    ];
 
-    lunch.foods = isVegetarian
-      ? ["Salada grande (alface, tomate, pepino)", "150g de grão-de-bico", "100g de quinoa", "Azeite de oliva (1 colher)"]
-      : ["Salada grande (alface, tomate, pepino)", "150g de frango grelhado", "100g de batata doce", "Legumes cozidos"];
-    lunch.why = "Proteína magra com carboidratos de baixo índice glicêmico. Mantém saciedade.";
     lunch.calories = "~450 kcal";
+    lunch.variations = isVegetarian ? [
+      {
+        foods: ["Salada grande (alface, tomate, pepino)", "150g de grão-de-bico", "100g de quinoa", "Azeite de oliva (1 colher)"],
+        why: "Proteína vegetal completa. Quinoa tem todos os aminoácidos essenciais."
+      },
+      {
+        foods: ["Bowl de lentilha (150g)", "100g de arroz integral", "Brócolis no vapor", "Cenoura ralada"],
+        why: "Lentilha é rica em proteína e ferro. Baixo índice glicêmico."
+      },
+      {
+        foods: ["Wrap integral com hummus", "Vegetais grelhados (abobrinha, berinjela)", "Salada verde"],
+        why: "Grão-de-bico do hummus fornece proteína. Fibras promovem saciedade."
+      }
+    ] : [
+      {
+        foods: ["Salada grande (alface, tomate, pepino)", "150g de frango grelhado", "100g de batata doce", "Legumes cozidos"],
+        why: "Proteína magra com carboidratos de baixo índice glicêmico. Mantém saciedade."
+      },
+      {
+        foods: ["150g de peixe assado", "Quinoa (100g)", "Brócolis e couve-flor no vapor", "Salada verde"],
+        why: "Ômega-3 do peixe reduz inflamação. Quinoa é superalimento completo."
+      },
+      {
+        foods: ["Peito de frango em tiras (150g)", "Salada de folhas variadas", "100g de grão-de-bico", "Tomate cereja"],
+        why: "Alta proteína, baixa caloria. Grão-de-bico adiciona fibras e saciedade."
+      }
+    ];
 
-    snack.foods = ["1 iogurte natural (desnatado)", "1 porção de oleaginosas (10 unidades de amêndoas ou castanhas)"];
-    snack.why = "Proteína e gorduras boas. Controla fome entre refeições.";
     snack.calories = "~200 kcal";
+    snack.variations = [
+      {
+        foods: ["1 iogurte natural (desnatado)", "10 amêndoas ou castanhas"],
+        why: "Proteína e gorduras boas. Controla fome entre refeições."
+      },
+      {
+        foods: ["1 maçã média", "1 colher de pasta de amendoim integral"],
+        why: "Fibras da maçã + gordura saudável. Combinação perfeita para saciedade."
+      },
+      {
+        foods: ["Vitamina: 200ml de leite desnatado + ½ banana + canela"],
+        why: "Proteína do leite + carboidrato natural. Canela controla açúcar no sangue."
+      }
+    ];
 
-    dinner.foods = isVegetarian
-      ? ["Omelete de 2 ovos com vegetais", "Salada verde", "1 fatia de queijo branco"]
-      : ["150g de peixe grelhado (tilápia ou salmão)", "Brócolis e couve-flor no vapor", "Salada verde"];
-    dinner.why = "Leve e rico em proteínas. Não sobrecarrega digestão à noite.";
     dinner.calories = "~350 kcal";
+    dinner.variations = isVegetarian ? [
+      {
+        foods: ["Omelete de 2 ovos com vegetais", "Salada verde", "1 fatia de queijo branco"],
+        why: "Leve e rico em proteínas. Não sobrecarrega digestão à noite."
+      },
+      {
+        foods: ["Sopa de legumes com tofu (150g)", "Salada de rúcula", "1 fatia de pão integral"],
+        why: "Hidratante e nutritiva. Tofu fornece proteína completa."
+      },
+      {
+        foods: ["Berinjela recheada com quinoa e tomate", "Salada verde", "Azeite de oliva"],
+        why: "Baixa caloria, alto volume. Quinoa mantém saciedade durante a noite."
+      }
+    ] : [
+      {
+        foods: ["150g de peixe grelhado (tilápia ou salmão)", "Brócolis e couve-flor no vapor", "Salada verde"],
+        why: "Leve e rico em proteínas. Não sobrecarrega digestão à noite."
+      },
+      {
+        foods: ["150g de frango desfiado", "Sopa de legumes", "Salada de pepino com hortelã"],
+        why: "Proteína magra. Sopa aquece e hidrata sem pesar."
+      },
+      {
+        foods: ["Omelete de claras (3 claras)", "Aspargos grelhados", "Tomate cereja", "Salada"],
+        why: "Proteína pura sem gordura. Aspargos têm efeito diurético natural."
+      }
+    ];
   } else if (isMuscleGain) {
-    breakfast.foods = isVegetarian
-      ? ["4 ovos mexidos", "100g de aveia com leite", "2 bananas", "1 colher de pasta de amendoim"]
-      : ["4 ovos (2 inteiros + 2 claras)", "100g de aveia com leite", "2 bananas", "1 colher de pasta de amendoim"];
-    breakfast.why = "Alta caloria e proteína para crescimento muscular. Carboidratos para energia.";
     breakfast.calories = "~650 kcal";
+    breakfast.variations = isVegetarian ? [
+      {
+        foods: ["4 ovos mexidos", "100g de aveia com leite", "2 bananas", "1 colher de pasta de amendoim"],
+        why: "Alta caloria e proteína para crescimento muscular. Carboidratos para energia."
+      },
+      {
+        foods: ["Panqueca de aveia (3 unidades)", "2 ovos", "1 banana", "Mel", "Leite integral"],
+        why: "Proteína + carboidrato na proporção ideal pós-treino. Receita saborosa."
+      },
+      {
+        foods: ["Vitamina: 400ml de leite integral", "100g de aveia", "2 bananas", "2 colheres de pasta de amendoim", "1 scoop de proteína vegetal"],
+        why: "Shake hipercalórico. Fácil digestão, ideal para quem tem pouco apetite."
+      }
+    ] : [
+      {
+        foods: ["4 ovos (2 inteiros + 2 claras)", "100g de aveia com leite", "2 bananas", "1 colher de pasta de amendoim"],
+        why: "Alta caloria e proteína para crescimento muscular. Carboidratos para energia."
+      },
+      {
+        foods: ["3 ovos mexidos com queijo", "2 fatias de pão integral", "Abacate (½)", "Suco de laranja"],
+        why: "Gorduras boas do abacate. Vitamina C do suco ajuda absorção de nutrientes."
+      },
+      {
+        foods: ["Tapioca recheada com frango desfiado (150g)", "2 ovos", "Vitamina de banana com whey"],
+        why: "Carboidrato de rápida absorção + proteína. Perfeito pré-treino matinal."
+      }
+    ];
 
-    lunch.foods = isVegetarian
-      ? ["200g de tofu grelhado", "200g de arroz integral", "150g de feijão", "Salada com azeite", "1 suco natural"]
-      : ["200g de carne vermelha magra", "200g de arroz integral", "150g de feijão", "Salada com azeite"];
-    lunch.why = "Refeição completa com proteína, carboidratos e micronutrientes para recuperação muscular.";
     lunch.calories = "~750 kcal";
+    lunch.variations = isVegetarian ? [
+      {
+        foods: ["200g de tofu grelhado", "200g de arroz integral", "150g de feijão", "Salada com azeite", "1 suco natural"],
+        why: "Refeição completa com proteína, carboidratos e micronutrientes para recuperação muscular."
+      },
+      {
+        foods: ["150g de grão-de-bico", "200g de batata doce", "150g de lentilha", "Brócolis", "Azeite de oliva extra"],
+        why: "Dupla de leguminosas = proteína completa. Batata doce fornece energia duradoura."
+      },
+      {
+        foods: ["Bowl de quinoa (200g)", "150g de edamame", "Abacate (½)", "Vegetais assados", "Molho tahine"],
+        why: "Superalimentos combinados. Quinoa + edamame = proteína de alta qualidade."
+      }
+    ] : [
+      {
+        foods: ["200g de carne vermelha magra", "200g de arroz integral", "150g de feijão", "Salada com azeite"],
+        why: "Refeição completa com proteína, carboidratos e micronutrientes para recuperação muscular."
+      },
+      {
+        foods: ["200g de frango grelhado", "250g de macarrão integral", "Molho de tomate caseiro", "Legumes salteados"],
+        why: "Carboidratos para repor glicogênio. Proteína para reparação muscular."
+      },
+      {
+        foods: ["200g de salmão", "200g de arroz integral", "Batata doce (150g)", "Aspargos grelhados"],
+        why: "Ômega-3 reduz inflamação pós-treino. Combinação perfeita de macros."
+      }
+    ];
 
-    snack.foods = canCook
-      ? ["Vitamina: 300ml de leite + 1 banana + 1 scoop de whey protein + aveia"]
-      : ["2 sanduíches de pão integral com pasta de amendoim", "1 copo de leite"];
-    snack.why = "Proteína de rápida absorção para manutenção do anabolismo.";
     snack.calories = "~400 kcal";
+    snack.variations = [
+      {
+        foods: ["Vitamina: 300ml de leite + 1 banana + 1 scoop de whey protein + aveia"],
+        why: "Proteína de rápida absorção para manutenção do anabolismo."
+      },
+      {
+        foods: ["2 sanduíches de pão integral com pasta de amendoim", "1 copo de leite integral", "1 banana"],
+        why: "Carboidratos + gorduras + proteína. Lanche completo entre refeições."
+      },
+      {
+        foods: ["Barra de proteína (30g)", "20 unidades de amendoim", "1 maçã"],
+        why: "Prático e nutritivo. Proteína + gorduras boas + fibras."
+      }
+    ];
 
-    dinner.foods = isVegetarian
-      ? ["200g de grão-de-bico", "150g de batata doce", "Legumes variados", "Salada"]
-      : ["200g de frango ou peixe", "150g de arroz integral", "Legumes assados", "Salada"];
-    dinner.why = "Refeição completa para recuperação noturna e síntese proteica.";
     dinner.calories = "~600 kcal";
+    dinner.variations = isVegetarian ? [
+      {
+        foods: ["200g de grão-de-bico", "150g de batata doce", "Legumes variados", "Salada"],
+        why: "Refeição completa para recuperação noturna e síntese proteica."
+      },
+      {
+        foods: ["Omelete de 4 ovos com queijo e espinafre", "100g de arroz integral", "Salada de tomate"],
+        why: "Proteína de alta qualidade. Caseinato do queijo = liberação lenta à noite."
+      },
+      {
+        foods: ["Hambúrguer de lentilha (2 unidades)", "150g de batata doce", "Salada verde", "Abacate"],
+        why: "Proteína vegetal + carboidratos. Abacate adiciona calorias saudáveis."
+      }
+    ] : [
+      {
+        foods: ["200g de frango ou peixe", "150g de arroz integral", "Legumes assados", "Salada"],
+        why: "Refeição completa para recuperação noturna e síntese proteica."
+      },
+      {
+        foods: ["200g de carne moída magra", "150g de macarrão integral", "Molho de tomate", "Legumes"],
+        why: "Proteína + carboidrato. Refeição sólida para manutenção do anabolismo."
+      },
+      {
+        foods: ["Omelete de 3 ovos inteiros", "150g de batata doce", "Atum (1 lata)", "Salada verde"],
+        why: "Proteína de múltiplas fontes. Refeição rica para crescimento durante o sono."
+      }
+    ];
   } else {
-    breakfast.foods = ["Tapioca com queijo", "1 fruta", "Café com leite"];
-    breakfast.why = "Carboidratos de qualidade para energia matinal.";
+    // Maintenance
     breakfast.calories = "~400 kcal";
+    breakfast.variations = [
+      {
+        foods: ["Tapioca com queijo", "1 fruta", "Café com leite"],
+        why: "Carboidratos de qualidade para energia matinal."
+      },
+      {
+        foods: ["2 fatias de pão integral", "2 ovos", "Suco de laranja natural"],
+        why: "Clássico equilibrado. Proteína + carboidrato + vitamina C."
+      },
+      {
+        foods: ["Mingau de aveia (100g)", "1 banana", "Canela", "Leite"],
+        why: "Carboidratos de liberação lenta. Mantém saciedade até o almoço."
+      }
+    ];
 
-    lunch.foods = ["Arroz e feijão", "Proteína (frango, peixe ou carne)", "Salada", "Legumes"];
-    lunch.why = "Refeição equilibrada com todos os nutrientes essenciais.";
-    lunch.calories = "~600 kcal";
+    lunch.calories = "~550 kcal";
+    lunch.variations = [
+      {
+        foods: ["Arroz e feijão", "Proteína (frango, peixe ou carne)", "Salada", "Legumes"],
+        why: "Refeição balanceada tradicional brasileira."
+      },
+      {
+        foods: ["150g de macarrão integral", "Molho de tomate com carne moída (100g)", "Salada verde"],
+        why: "Carboidratos + proteína. Energia para o resto do dia."
+      },
+      {
+        foods: ["Prato feito: arroz (100g)", "Feijão (100g)", "Bife (120g)", "Ovo", "Salada"],
+        why: "Brasileiro completo. Todos os macronutrientes balanceados."
+      }
+    ];
 
-    snack.foods = ["Frutas", "Castanhas", "Iogurte"];
-    snack.why = "Lanche nutritivo para manter energia entre refeições.";
     snack.calories = "~250 kcal";
+    snack.variations = [
+      {
+        foods: ["Fruta da estação", "Castanhas (10 unidades)"],
+        why: "Natural e nutritivo. Gorduras boas das castanhas."
+      },
+      {
+        foods: ["Iogurte natural (200g)", "2 colheres de granola", "Mel"],
+        why: "Probióticos + fibras. Bom para digestão."
+      },
+      {
+        foods: ["Sanduíche integral com peito de peru e queijo"],
+        why: "Prático e balanceado. Ideal para o meio da tarde."
+      }
+    ];
 
-    dinner.foods = ["Sopa de legumes", "Proteína grelhada", "Salada"];
-    dinner.why = "Jantar leve para boa digestão noturna.";
-    dinner.calories = "~400 kcal";
+    dinner.calories = "~450 kcal";
+    dinner.variations = [
+      {
+        foods: ["Proteína grelhada (150g)", "Salada grande", "Sopa de legumes"],
+        why: "Leve mas nutritivo. Não atrapalha o sono."
+      },
+      {
+        foods: ["150g de frango", "Purê de batata doce", "Brócolis no vapor"],
+        why: "Jantar confortável e equilibrado. Carboidrato de qualidade."
+      },
+      {
+        foods: ["Omelete de 2 ovos", "Salada caprese", "1 fatia de pão integral"],
+        why: "Rápido de fazer. Proteína + vegetais frescos."
+      }
+    ];
   }
 
   return [breakfast, lunch, snack, dinner];
@@ -139,6 +347,9 @@ export default function DietTab({ quizData }: DietTabProps) {
   const [waterConfettiTriggered, setWaterConfettiTriggered] = useState(false);
   const [totalCalories, setTotalCalories] = useState(0);
   const [isLoadingCalories, setIsLoadingCalories] = useState(true);
+  
+  // Track which variation is shown for each meal (0, 1, or 2)
+  const [mealVariations, setMealVariations] = useState<number[]>([0, 0, 0, 0]);
 
   const meals = generateDiet(quizData);
   
@@ -154,6 +365,14 @@ export default function DietTab({ quizData }: DietTabProps) {
 
   const waterProgress = (waterIntake / waterGoalMl) * 100;
   const calorieProgress = (totalCalories / calorieGoal) * 100;
+
+  // Rotate variations daily based on date
+  useEffect(() => {
+    const today = new Date();
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+    const dailyRotation = dayOfYear % 3; // Rotates 0, 1, 2 based on day
+    setMealVariations([dailyRotation, dailyRotation, dailyRotation, dailyRotation]);
+  }, []);
 
   useEffect(() => {
     const loadWaterIntake = async () => {
@@ -306,13 +525,30 @@ export default function DietTab({ quizData }: DietTabProps) {
           >
             <h3 className="text-xl font-semibold text-foreground">Sugestões de Refeições</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Clique em cada refeição para ver as sugestões personalizadas baseadas no seu objetivo
+              Clique em cada refeição para ver as sugestões personalizadas. As variações mudam diariamente!
             </p>
           </motion.div>
           
           <Accordion type="single" collapsible className="w-full">
             {meals.map((meal, index) => {
               const Icon = meal.icon;
+              const currentVariation = meal.variations[mealVariations[index]];
+              
+              const nextVariation = () => {
+                setMealVariations(prev => {
+                  const newVariations = [...prev];
+                  newVariations[index] = (newVariations[index] + 1) % 3;
+                  return newVariations;
+                });
+              };
+
+              const prevVariation = () => {
+                setMealVariations(prev => {
+                  const newVariations = [...prev];
+                  newVariations[index] = (newVariations[index] - 1 + 3) % 3;
+                  return newVariations;
+                });
+              };
               
               return (
                 <AccordionItem key={index} value={`meal-${index}`}>
@@ -344,49 +580,85 @@ export default function DietTab({ quizData }: DietTabProps) {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="space-y-4 pt-4 pl-14"
+                      className="space-y-4 pt-4 pl-4 sm:pl-14"
                     >
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-muted-foreground">Sugestão:</h4>
-                        <motion.ul 
-                          className="space-y-1"
-                          initial="hidden"
-                          animate="visible"
-                          variants={{
-                            visible: {
-                              transition: {
-                                staggerChildren: 0.05
-                              }
-                            }
-                          }}
-                        >
-                          {meal.foods.map((food, foodIndex) => (
-                            <motion.li
-                              key={foodIndex}
-                              variants={{
-                                hidden: { opacity: 0, x: -10 },
-                                visible: { opacity: 1, x: 0 }
-                              }}
-                              className="text-sm text-foreground flex items-start gap-2"
-                            >
-                              <span className="text-primary mt-1">•</span>
-                              <span>{food}</span>
-                            </motion.li>
-                          ))}
-                        </motion.ul>
-                      </div>
-                      
-                      <motion.div 
-                        className="pt-2 border-t border-border/50"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2, duration: 0.3 }}
-                      >
-                        <div className="flex items-start gap-2">
-                          <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          <p className="text-sm text-muted-foreground">{meal.why}</p>
+                      {/* Variation navigation */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={prevVariation}
+                            className="h-8 w-8 p-0"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <Badge variant="outline" className="text-xs">
+                            Variação {mealVariations[index] + 1}/3
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={nextVariation}
+                            className="h-8 w-8 p-0"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </motion.div>
+                      </div>
+
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={mealVariations[index]}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.3 }}
+                          className="space-y-4"
+                        >
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-muted-foreground">Sugestão:</h4>
+                            <motion.ul 
+                              className="space-y-1"
+                              initial="hidden"
+                              animate="visible"
+                              variants={{
+                                visible: {
+                                  transition: {
+                                    staggerChildren: 0.05
+                                  }
+                                }
+                              }}
+                            >
+                              {currentVariation.foods.map((food, foodIndex) => (
+                                <motion.li
+                                  key={foodIndex}
+                                  variants={{
+                                    hidden: { opacity: 0, x: -10 },
+                                    visible: { opacity: 1, x: 0 }
+                                  }}
+                                  className="text-sm text-foreground flex items-start gap-2"
+                                >
+                                  <span className="text-primary mt-1">•</span>
+                                  <span>{food}</span>
+                                </motion.li>
+                              ))}
+                            </motion.ul>
+                          </div>
+                          
+                          <motion.div 
+                            className="pt-2 border-t border-border/50"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2, duration: 0.3 }}
+                          >
+                            <div className="flex items-start gap-2">
+                              <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                              <p className="text-sm text-muted-foreground">{currentVariation.why}</p>
+                            </div>
+                          </motion.div>
+                        </motion.div>
+                      </AnimatePresence>
                     </motion.div>
                   </AccordionContent>
                 </AccordionItem>
