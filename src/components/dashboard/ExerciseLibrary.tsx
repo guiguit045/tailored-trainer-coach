@@ -25,9 +25,126 @@ interface Exercise {
 
 const RAPIDAPI_KEY = "6c5912ddddmsh039de1d7dbb33bbp10d478jsn984f546dd437";
 
-// ExerciseDB API já retorna gifUrl no response, vamos usar isso diretamente
-const getExerciseImageUrl = (exerciseId: string) => {
-  return `https://v2.exercisedb.io/image/${exerciseId}`;
+const bodyPartEmojis: Record<string, string> = {
+  "back": "🦴",
+  "cardio": "❤️",
+  "chest": "💪",
+  "lower arms": "💪",
+  "lower legs": "🦵",
+  "neck": "🧑",
+  "shoulders": "💪",
+  "upper arms": "💪",
+  "upper legs": "🦵",
+  "waist": "🔥"
+};
+
+const translateExerciseName = (name: string): string => {
+  const translations: Record<string, string> = {
+    // Common exercise terms
+    "push": "empurrar",
+    "pull": "puxar",
+    "up": "para cima",
+    "down": "para baixo",
+    "press": "pressão",
+    "curl": "rosca",
+    "raise": "elevação",
+    "row": "remada",
+    "squat": "agachamento",
+    "lunge": "afundo",
+    "crunch": "abdominal",
+    "plank": "prancha",
+    "bridge": "ponte",
+    "deadlift": "levantamento terra",
+    "bench": "banco",
+    "dumbbell": "halter",
+    "barbell": "barra",
+    "cable": "cabo",
+    "machine": "máquina",
+    "band": "elástico",
+    "body weight": "peso corporal",
+    "assisted": "assistido",
+    "standing": "em pé",
+    "seated": "sentado",
+    "lying": "deitado",
+    "incline": "inclinado",
+    "decline": "declinado",
+    "alternating": "alternado",
+    "single": "único",
+    "leg": "perna",
+    "arm": "braço",
+    "shoulder": "ombro",
+    "chest": "peito",
+    "back": "costas",
+    "biceps": "bíceps",
+    "triceps": "tríceps",
+    "lateral": "lateral",
+    "front": "frontal",
+    "rear": "posterior"
+  };
+  
+  let translated = name.toLowerCase();
+  Object.entries(translations).forEach(([eng, pt]) => {
+    translated = translated.replace(new RegExp(eng, 'gi'), pt);
+  });
+  
+  return translated.split(' ').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+};
+
+const translateInstruction = (instruction: string): string => {
+  const translations: Record<string, string> = {
+    "stand": "fique em pé",
+    "sit": "sente-se",
+    "lie": "deite-se",
+    "hold": "segure",
+    "grab": "pegue",
+    "place": "coloque",
+    "position": "posicione",
+    "keep": "mantenha",
+    "slowly": "lentamente",
+    "lower": "abaixe",
+    "lift": "levante",
+    "raise": "eleve",
+    "return": "retorne",
+    "repeat": "repita",
+    "exhale": "expire",
+    "inhale": "inspire",
+    "breathe": "respire",
+    "arms": "braços",
+    "legs": "pernas",
+    "back": "costas",
+    "chest": "peito",
+    "shoulders": "ombros",
+    "feet": "pés",
+    "hands": "mãos",
+    "floor": "chão",
+    "ground": "solo",
+    "bench": "banco",
+    "bar": "barra",
+    "weight": "peso",
+    "dumbbell": "halter",
+    "your": "seu(s)/sua(s)",
+    "the": "o/a",
+    "and": "e",
+    "with": "com",
+    "without": "sem",
+    "until": "até",
+    "then": "então",
+    "while": "enquanto",
+    "starting": "começando",
+    "forward": "para frente",
+    "backward": "para trás",
+    "upward": "para cima",
+    "downward": "para baixo"
+  };
+  
+  let translated = instruction.toLowerCase();
+  Object.entries(translations).forEach(([eng, pt]) => {
+    translated = translated.replace(new RegExp(`\\b${eng}\\b`, 'gi'), pt);
+  });
+  
+  return translated.charAt(0).toUpperCase() + translated.slice(1);
 };
 
 const bodyPartTranslations: Record<string, string> = {
@@ -225,25 +342,14 @@ const ExerciseLibrary = () => {
                       className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                       onClick={() => setSelectedExercise(exercise)}
                     >
-                      <div className="aspect-video bg-muted relative overflow-hidden flex items-center justify-center">
-                        <img
-                          src={getExerciseImageUrl(exercise.id)}
-                          alt={exercise.name}
-                          className="w-full h-full object-contain"
-                          loading="lazy"
-                          onError={(e) => {
-                            console.error('Erro ao carregar imagem:', exercise.id);
-                            e.currentTarget.style.display = 'none';
-                            const parent = e.currentTarget.parentElement;
-                            if (parent) {
-                              parent.innerHTML = '<div class="text-muted-foreground text-sm p-4 text-center">Imagem não disponível</div>';
-                            }
-                          }}
-                        />
+                      <div className="aspect-video bg-gradient-to-br from-primary/10 to-primary/5 relative overflow-hidden flex items-center justify-center">
+                        <span className="text-8xl">
+                          {bodyPartEmojis[exercise.bodyPart] || "💪"}
+                        </span>
                       </div>
                       <div className="p-4">
-                        <h4 className="font-semibold mb-2 capitalize line-clamp-2">
-                          {exercise.name}
+                        <h4 className="font-semibold mb-2 line-clamp-2">
+                          {translateExerciseName(exercise.name)}
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline" className="capitalize text-xs">
@@ -276,8 +382,8 @@ const ExerciseLibrary = () => {
           {selectedExercise && (
             <>
               <DialogHeader>
-                <DialogTitle className="capitalize text-2xl">
-                  {selectedExercise.name}
+                <DialogTitle className="text-2xl">
+                  {translateExerciseName(selectedExercise.name)}
                 </DialogTitle>
               </DialogHeader>
               <div className="flex flex-wrap gap-2 pb-4">
@@ -293,20 +399,10 @@ const ExerciseLibrary = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-                  <img
-                    src={getExerciseImageUrl(selectedExercise.id)}
-                    alt={selectedExercise.name}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      console.error('Erro ao carregar demonstração:', selectedExercise.id);
-                      e.currentTarget.style.display = 'none';
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        parent.innerHTML = '<div class="text-muted-foreground text-sm p-4 text-center">Demonstração não disponível</div>';
-                      }
-                    }}
-                  />
+                <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg overflow-hidden flex items-center justify-center">
+                  <span className="text-9xl">
+                    {bodyPartEmojis[selectedExercise.bodyPart] || "💪"}
+                  </span>
                 </div>
 
                 <div>
@@ -317,7 +413,7 @@ const ExerciseLibrary = () => {
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
                           {index + 1}
                         </span>
-                        <span className="text-muted-foreground capitalize">{instruction}</span>
+                        <span className="text-muted-foreground">{translateInstruction(instruction)}</span>
                       </li>
                     ))}
                   </ol>
