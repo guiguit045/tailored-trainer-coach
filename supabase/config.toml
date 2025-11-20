@@ -2,6 +2,3 @@ project_id = "nzkiiuzrtouobdxcoqcs"
 
 [functions.search-exercise]
 verify_jwt = false
-
-[functions.realtime-token]
-verify_jwt = false
