@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coffee, Sun, Moon, Apple, Info, Droplet } from "lucide-react";
+import { Coffee, Sun, Moon, Apple, Info, Droplet, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getWaterIntake, addWaterIntake } from "@/lib/workoutStorage";
 import { celebrateCompletion } from "@/lib/confetti";
@@ -11,6 +11,7 @@ import MealPhotoCapture from "./MealPhotoCapture";
 import MealHistory from "./MealHistory";
 import GoalEditor from "./GoalEditor";
 import { calculateNutritionGoals } from "@/lib/nutritionCalculator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import type { QuizData } from "@/pages/Quiz";
 
 interface DietTabProps {
@@ -294,54 +295,62 @@ export default function DietTab({ quizData }: DietTabProps) {
       {/* Meal History */}
       <MealHistory onMealUpdated={loadDailyCalories} />
 
-      {/* Meal Suggestion Cards */}
-      <div className="grid gap-4">
-        {meals.map((meal, index) => {
-          const Icon = meal.icon;
+      {/* Meal Suggestions Accordion */}
+      <Card className="p-6">
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-foreground">Sugestões de Refeições</h3>
+          <p className="text-sm text-muted-foreground">
+            Clique em cada refeição para ver as sugestões personalizadas baseadas no seu objetivo
+          </p>
           
-          return (
-            <Card 
-              key={index} 
-              className="p-6 hover:shadow-md transition-all duration-300"
-            >
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-muted">
-                      <Icon className="h-5 w-5 text-muted-foreground" />
+          <Accordion type="single" collapsible className="w-full">
+            {meals.map((meal, index) => {
+              const Icon = meal.icon;
+              
+              return (
+                <AccordionItem key={index} value={`meal-${index}`}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="p-2 rounded-lg bg-muted">
+                        <Icon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex items-center justify-between flex-1 text-left">
+                        <span className="font-semibold">{meal.name}</span>
+                        <Badge variant="secondary" className="mr-2">
+                          {meal.calories}
+                        </Badge>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-lg text-foreground">{meal.name}</h3>
-                      <Badge variant="secondary" className="mt-1">
-                        {meal.calories}
-                      </Badge>
+                  </AccordionTrigger>
+                  
+                  <AccordionContent>
+                    <div className="space-y-4 pt-4 pl-14">
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Sugestão:</h4>
+                        <ul className="space-y-1">
+                          {meal.foods.map((food, foodIndex) => (
+                            <li key={foodIndex} className="text-sm text-foreground flex items-start gap-2">
+                              <span className="text-primary mt-1">•</span>
+                              <span>{food}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div className="pt-2 border-t border-border/50">
+                        <div className="flex items-start gap-2">
+                          <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-muted-foreground">{meal.why}</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">Sugestão:</h4>
-                  <ul className="space-y-1">
-                    {meal.foods.map((food, foodIndex) => (
-                      <li key={foodIndex} className="text-sm text-foreground flex items-start gap-2">
-                        <span className="text-primary mt-1">•</span>
-                        <span>{food}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div className="pt-2 border-t border-border/50">
-                  <div className="flex items-start gap-2">
-                    <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-muted-foreground">{meal.why}</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        </div>
+      </Card>
 
       {/* Nutritional Tips */}
       <Card className="p-6 bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
