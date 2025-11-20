@@ -9,9 +9,6 @@ import { celebrateCompletion } from "@/lib/confetti";
 import { supabase } from "@/integrations/supabase/client";
 import MealPhotoCapture from "./MealPhotoCapture";
 import MealHistory from "./MealHistory";
-import WeightTracker from "./WeightTracker";
-import CalorieChart from "./CalorieChart";
-import StatsOverview from "./StatsOverview";
 import GoalEditor from "./GoalEditor";
 import { calculateNutritionGoals } from "@/lib/nutritionCalculator";
 import type { QuizData } from "@/pages/Quiz";
@@ -219,25 +216,15 @@ export default function DietTab({ quizData }: DietTabProps) {
   const hasAllergies = quizData.allergies && quizData.allergies !== "none";
 
   return (
-    <div className="space-y-8 pb-20">
-      {/* Statistics Overview */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">Estatísticas</h2>
-          <GoalEditor 
-            defaultCalories={calculatedGoals.calories}
-            defaultWater={calculatedGoals.waterMl}
-            onGoalsUpdated={handleGoalsUpdated}
-          />
-        </div>
-        <StatsOverview />
+    <div className="space-y-6 pb-20">
+      {/* Goal Editor */}
+      <div className="flex justify-end">
+        <GoalEditor 
+          defaultCalories={calculatedGoals.calories}
+          defaultWater={calculatedGoals.waterMl}
+          onGoalsUpdated={handleGoalsUpdated}
+        />
       </div>
-
-      {/* Weight Tracker */}
-      <WeightTracker />
-
-      {/* Calorie Chart */}
-      <CalorieChart />
 
       <MealPhotoCapture onMealAdded={loadDailyCalories} />
 
