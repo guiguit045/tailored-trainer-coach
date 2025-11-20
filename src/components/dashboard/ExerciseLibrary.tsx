@@ -216,13 +216,24 @@ const ExerciseLibrary = () => {
                       className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                       onClick={() => setSelectedExercise(exercise)}
                     >
-                      <div className="aspect-video bg-muted relative overflow-hidden">
-                        <img
-                          src={exercise.gifUrl}
-                          alt={exercise.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
+                      <div className="aspect-video bg-muted relative overflow-hidden flex items-center justify-center">
+                        {exercise.gifUrl ? (
+                          <img
+                            src={exercise.gifUrl}
+                            alt={exercise.name}
+                            className="w-full h-full object-contain"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="text-muted-foreground text-sm p-4 text-center">Imagem não disponível</div>';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="text-muted-foreground text-sm">Sem demonstração</div>
+                        )}
                       </div>
                       <div className="p-4">
                         <h4 className="font-semibold mb-2 capitalize line-clamp-2">
@@ -262,26 +273,37 @@ const ExerciseLibrary = () => {
                 <DialogTitle className="capitalize text-2xl">
                   {selectedExercise.name}
                 </DialogTitle>
-                <DialogDescription className="flex flex-wrap gap-2 pt-2">
-                  <Badge variant="outline" className="capitalize">
-                    {bodyPartTranslations[selectedExercise.bodyPart] || selectedExercise.bodyPart}
-                  </Badge>
-                  <Badge variant="outline" className="capitalize">
-                    Alvo: {selectedExercise.target}
-                  </Badge>
-                  <Badge variant="secondary" className="capitalize">
-                    {equipmentTranslations[selectedExercise.equipment] || selectedExercise.equipment}
-                  </Badge>
-                </DialogDescription>
               </DialogHeader>
+              <div className="flex flex-wrap gap-2 pb-4">
+                <Badge variant="outline" className="capitalize">
+                  {bodyPartTranslations[selectedExercise.bodyPart] || selectedExercise.bodyPart}
+                </Badge>
+                <Badge variant="outline" className="capitalize">
+                  Alvo: {selectedExercise.target}
+                </Badge>
+                <Badge variant="secondary" className="capitalize">
+                  {equipmentTranslations[selectedExercise.equipment] || selectedExercise.equipment}
+                </Badge>
+              </div>
 
               <div className="space-y-4">
-                <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                  <img
-                    src={selectedExercise.gifUrl}
-                    alt={selectedExercise.name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+                  {selectedExercise.gifUrl ? (
+                    <img
+                      src={selectedExercise.gifUrl}
+                      alt={selectedExercise.name}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          parent.innerHTML = '<div class="text-muted-foreground text-sm p-4 text-center">Demonstração não disponível</div>';
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="text-muted-foreground text-sm">Sem demonstração</div>
+                  )}
                 </div>
 
                 <div>
