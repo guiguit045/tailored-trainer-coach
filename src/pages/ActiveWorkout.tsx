@@ -13,11 +13,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, ChevronDown, ChevronUp, Info, Plus, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ArrowLeft, ChevronDown, ChevronUp, Play, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
 import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog, updateUserStreak } from "@/lib/workoutStorage";
+import { searchExerciseByName, type ExerciseVideo } from "@/lib/exerciseDB";
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -38,6 +45,11 @@ const ActiveWorkout = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [workoutPlanId, setWorkoutPlanId] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ exerciseIdx: number; setIdx: number } | null>(null);
+  const [videoDialog, setVideoDialog] = useState<{ isOpen: boolean; exercise: ExerciseVideo | null; loading: boolean }>({
+    isOpen: false,
+    exercise: null,
+    loading: false,
+  });
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -282,6 +294,33 @@ const ActiveWorkout = () => {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const openExerciseVideo = async (exerciseName: string) => {
+    setVideoDialog({ isOpen: true, exercise: null, loading: true });
+    
+    try {
+      const exerciseData = await searchExerciseByName(exerciseName);
+      
+      if (exerciseData) {
+        setVideoDialog({ isOpen: true, exercise: exerciseData, loading: false });
+      } else {
+        toast({
+          title: "Vídeo não encontrado",
+          description: "Não foi possível encontrar um vídeo demonstrativo para este exercício.",
+          variant: "destructive",
+        });
+        setVideoDialog({ isOpen: false, exercise: null, loading: false });
+      }
+    } catch (error) {
+      console.error("Error fetching exercise video:", error);
+      toast({
+        title: "Erro ao carregar vídeo",
+        description: "Ocorreu um erro ao buscar o vídeo demonstrativo.",
+        variant: "destructive",
+      });
+      setVideoDialog({ isOpen: false, exercise: null, loading: false });
+    }
+  };
+
   if (!workout) return null;
 
   const totalSets = workout.exercises.reduce((acc, ex) => acc + parseInt(ex.sets), 0);
@@ -347,13 +386,10 @@ const ActiveWorkout = () => {
                       className="h-8 w-8"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toast({
-                          title: "Dica",
-                          description: exercise.tip,
-                        });
+                        openExerciseVideo(exercise.name);
                       }}
                     >
-                      <Info className="h-4 w-4" />
+                      <Play className="h-4 w-4" />
                     </Button>
                     {isExpanded ? (
                       <ChevronUp className="h-5 w-5 text-muted-foreground" />
@@ -466,6 +502,62 @@ const ActiveWorkout = () => {
           REGISTRAR A PRÓXIMA SÉRIE
         </Button>
       </div>
+
+      {/* Exercise Video Dialog */}
+      <Dialog open={videoDialog.isOpen} onOpenChange={(open) => setVideoDialog({ isOpen: open, exercise: null, loading: false })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              {videoDialog.loading ? "Carregando..." : videoDialog.exercise?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {videoDialog.loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : videoDialog.exercise ? (
+            <div className="space-y-4">
+              {/* Exercise GIF */}
+              <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+                <img 
+                  src={videoDialog.exercise.gifUrl} 
+                  alt={videoDialog.exercise.name}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              
+              {/* Exercise Info */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-primary/5 p-3 rounded-lg border border-primary/10">
+                  <p className="text-xs font-semibold text-primary mb-1">Grupo Muscular</p>
+                  <p className="text-sm capitalize">{videoDialog.exercise.bodyPart}</p>
+                </div>
+                <div className="bg-primary/5 p-3 rounded-lg border border-primary/10">
+                  <p className="text-xs font-semibold text-primary mb-1">Alvo</p>
+                  <p className="text-sm capitalize">{videoDialog.exercise.target}</p>
+                </div>
+                <div className="bg-primary/5 p-3 rounded-lg border border-primary/10 col-span-2">
+                  <p className="text-xs font-semibold text-primary mb-1">Equipamento</p>
+                  <p className="text-sm capitalize">{videoDialog.exercise.equipment}</p>
+                </div>
+              </div>
+              
+              {/* Instructions */}
+              {videoDialog.exercise.instructions.length > 0 && (
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <p className="text-sm font-semibold mb-2">Instruções:</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    {videoDialog.exercise.instructions.map((instruction, idx) => (
+                      <li key={idx} className="text-sm text-muted-foreground">{instruction}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirmation} onOpenChange={(open) => !open && setDeleteConfirmation(null)}>
