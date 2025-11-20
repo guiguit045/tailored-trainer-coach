@@ -19,12 +19,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, ChevronDown, ChevronUp, Play, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
 import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog, updateUserStreak } from "@/lib/workoutStorage";
-import { searchExerciseByName, type ExerciseVideo } from "@/lib/exerciseDB";
+
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -45,13 +45,6 @@ const ActiveWorkout = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [workoutPlanId, setWorkoutPlanId] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ exerciseIdx: number; setIdx: number } | null>(null);
-  const [videoDialog, setVideoDialog] = useState<{ isOpen: boolean; exercise: ExerciseVideo | null; loading: boolean }>({
-    isOpen: false,
-    exercise: null,
-    loading: false,
-  });
-  const [preloadingVideos, setPreloadingVideos] = useState(true);
-  const [preloadProgress, setPreloadProgress] = useState({ current: 0, total: 0 });
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -134,32 +127,6 @@ const ActiveWorkout = () => {
   const preloadExerciseVideos = async (currentWorkout: Workout) => {
     const exercises = currentWorkout.exercises;
     setPreloadProgress({ current: 0, total: exercises.length });
-    
-    console.log('Iniciando pré-carregamento de', exercises.length, 'vídeos...');
-    
-    // Carrega os vídeos em paralelo
-    const preloadPromises = exercises.map(async (exercise, index) => {
-      try {
-        await searchExerciseByName(exercise.name);
-        setPreloadProgress(prev => ({ ...prev, current: prev.current + 1 }));
-        console.log(`Vídeo ${index + 1}/${exercises.length} pré-carregado:`, exercise.name);
-      } catch (error) {
-        console.error('Erro ao pré-carregar vídeo:', exercise.name, error);
-        setPreloadProgress(prev => ({ ...prev, current: prev.current + 1 }));
-      }
-    });
-    
-    // Aguarda todos os vídeos serem carregados
-    await Promise.allSettled(preloadPromises);
-    
-    setPreloadingVideos(false);
-    console.log('Pré-carregamento de vídeos concluído!');
-    
-    toast({
-      title: "Vídeos carregados! 🎬",
-      description: "Todos os vídeos demonstrativos estão prontos.",
-    });
-  };
 
   const startRestTimer = (restSeconds: number) => {
     setIsResting(true);
@@ -330,40 +297,6 @@ const ActiveWorkout = () => {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const openExerciseVideo = async (exerciseName: string) => {
-    setVideoDialog({ isOpen: true, exercise: null, loading: true });
-    
-    console.log('=== DEBUG: Abrindo vídeo ===');
-    console.log('Nome do exercício:', exerciseName);
-    console.log('VITE_RAPIDAPI_KEY existe?', !!import.meta.env.VITE_RAPIDAPI_KEY);
-    console.log('VITE_RAPIDAPI_KEY valor (primeiros 20 chars):', import.meta.env.VITE_RAPIDAPI_KEY?.substring(0, 20));
-    
-    try {
-      const exerciseData = await searchExerciseByName(exerciseName);
-      
-      console.log('=== Resultado da busca ===');
-      console.log('Exercício encontrado?', !!exerciseData);
-      
-      if (exerciseData) {
-        setVideoDialog({ isOpen: true, exercise: exerciseData, loading: false });
-      } else {
-        toast({
-          title: "Vídeo não encontrado",
-          description: "Não foi possível encontrar um vídeo demonstrativo para este exercício.",
-          variant: "destructive",
-        });
-        setVideoDialog({ isOpen: false, exercise: null, loading: false });
-      }
-    } catch (error) {
-      console.error("Error fetching exercise video:", error);
-      toast({
-        title: "Erro ao carregar vídeo",
-        description: "Ocorreu um erro ao buscar o vídeo demonstrativo.",
-        variant: "destructive",
-      });
-      setVideoDialog({ isOpen: false, exercise: null, loading: false });
-    }
-  };
 
   if (!workout) return null;
 
@@ -426,41 +359,29 @@ const ActiveWorkout = () => {
 
           return (
             <Card key={exerciseIdx} className="overflow-hidden">
-              <div className="w-full">
-                <div 
-                  className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => toggleExerciseExpanded(exerciseIdx)}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                      <span className="text-2xl">💪</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-base mb-1">{exercise.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {completedCount}/{currentSetsCount} feito(s)
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openExerciseVideo(exercise.name);
-                        }}
-                      >
-                        <Play className="h-4 w-4" />
-                      </Button>
-                      {isExpanded ? (
-                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
+              <div 
+                className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => toggleExerciseExpanded(exerciseIdx)}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <span className="text-2xl">💪</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-base mb-1">{exercise.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {completedCount}/{currentSetsCount} feito(s)
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isExpanded ? (
+                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    )}
                   </div>
                 </div>
+              </div>
 
               <AnimatePresence>
                 {isExpanded && (
@@ -549,7 +470,6 @@ const ActiveWorkout = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
-              </div>
             </Card>
           );
         })}
@@ -566,61 +486,6 @@ const ActiveWorkout = () => {
         </Button>
       </div>
 
-      {/* Exercise Video Dialog */}
-      <Dialog open={videoDialog.isOpen} onOpenChange={(open) => setVideoDialog({ isOpen: open, exercise: null, loading: false })}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl">
-              {videoDialog.loading ? "Carregando..." : videoDialog.exercise?.name}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {videoDialog.loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-          ) : videoDialog.exercise ? (
-            <div className="space-y-4">
-              {/* Exercise GIF */}
-              <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
-                <img 
-                  src={videoDialog.exercise.gifUrl} 
-                  alt={videoDialog.exercise.name}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              
-              {/* Exercise Info */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-primary/5 p-3 rounded-lg border border-primary/10">
-                  <p className="text-xs font-semibold text-primary mb-1">Grupo Muscular</p>
-                  <p className="text-sm capitalize">{videoDialog.exercise.bodyPart}</p>
-                </div>
-                <div className="bg-primary/5 p-3 rounded-lg border border-primary/10">
-                  <p className="text-xs font-semibold text-primary mb-1">Alvo</p>
-                  <p className="text-sm capitalize">{videoDialog.exercise.target}</p>
-                </div>
-                <div className="bg-primary/5 p-3 rounded-lg border border-primary/10 col-span-2">
-                  <p className="text-xs font-semibold text-primary mb-1">Equipamento</p>
-                  <p className="text-sm capitalize">{videoDialog.exercise.equipment}</p>
-                </div>
-              </div>
-              
-              {/* Instructions */}
-              {videoDialog.exercise.instructions.length > 0 && (
-                <div className="bg-muted/30 p-4 rounded-lg">
-                  <p className="text-sm font-semibold mb-2">Instruções:</p>
-                  <ol className="list-decimal list-inside space-y-1">
-                    {videoDialog.exercise.instructions.map((instruction, idx) => (
-                      <li key={idx} className="text-sm text-muted-foreground">{instruction}</li>
-                    ))}
-                  </ol>
-                </div>
-              )}
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirmation} onOpenChange={(open) => !open && setDeleteConfirmation(null)}>
