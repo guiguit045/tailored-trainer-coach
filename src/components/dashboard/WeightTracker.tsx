@@ -7,6 +7,7 @@ import { Scale, TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { format } from "date-fns";
 
 interface WeightLog {
   id: string;
@@ -64,7 +65,7 @@ export default function WeightTracker() {
         .insert({
           user_id: user.id,
           weight,
-          log_date: new Date().toISOString().split('T')[0],
+          log_date: format(new Date(), 'yyyy-MM-dd'),
         });
 
       if (error) throw error;

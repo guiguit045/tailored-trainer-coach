@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 export interface QuizData {
   name: string;
@@ -333,7 +334,7 @@ export async function updateUserStreak() {
     .update({
       current_streak: currentStreak,
       max_streak: Math.max(maxStreak, currentMaxStreak),
-      last_workout_date: new Date().toISOString().split('T')[0],
+      last_workout_date: format(new Date(), 'yyyy-MM-dd'),
     })
     .eq("user_id", user.id);
 
@@ -389,7 +390,7 @@ export const getMealCompletions = async (date?: Date): Promise<number[]> => {
     if (!user) throw new Error("User not authenticated");
 
     const targetDate = date || new Date();
-    const dateString = targetDate.toISOString().split('T')[0];
+    const dateString = format(targetDate, 'yyyy-MM-dd');
 
     const { data, error } = await supabase
       .from('meal_completions')
@@ -411,7 +412,7 @@ export const toggleMealCompletion = async (mealIndex: number): Promise<boolean> 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = format(new Date(), 'yyyy-MM-dd');
 
     // Check if already completed
     const { data: existing } = await supabase
@@ -456,7 +457,7 @@ export const getWaterIntake = async (): Promise<number> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return 0;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = format(new Date(), 'yyyy-MM-dd');
 
     const { data, error } = await supabase
       .from('water_intake')
@@ -479,7 +480,7 @@ export const addWaterIntake = async (amountMl: number): Promise<number> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = format(new Date(), 'yyyy-MM-dd');
 
     // Check if record exists for today
     const { data: existing } = await supabase

@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp } from "lucide-react";
+import { format } from "date-fns";
 
 export default function CalorieChart() {
   const [chartData, setChartData] = useState<any[]>([]);
@@ -26,7 +27,7 @@ export default function CalorieChart() {
         .from("consumed_meals")
         .select("calories, meal_date")
         .eq("user_id", user.id)
-        .gte("meal_date", sevenDaysAgo.toISOString().split('T')[0])
+        .gte("meal_date", format(sevenDaysAgo, 'yyyy-MM-dd'))
         .order("meal_date", { ascending: true });
 
       if (error) throw error;
@@ -38,7 +39,7 @@ export default function CalorieChart() {
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = format(date, 'yyyy-MM-dd');
         groupedData[dateStr] = 0;
       }
 

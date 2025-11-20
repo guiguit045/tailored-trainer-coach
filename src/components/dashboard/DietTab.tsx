@@ -15,6 +15,7 @@ import { calculateNutritionGoals } from "@/lib/nutritionCalculator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion, AnimatePresence } from "framer-motion";
 import { waterSound } from "@/lib/waterSound";
+import { format } from "date-fns";
 import type { QuizData } from "@/pages/Quiz";
 interface DietTabProps {
   quizData: QuizData;
@@ -306,7 +307,7 @@ export default function DietTab({
         }
       } = await supabase.auth.getUser();
       if (!user) return;
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(new Date(), 'yyyy-MM-dd');
       const {
         data,
         error
