@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { getEffectiveDate } from "./dateUtils";
 
 export interface QuizData {
   name: string;
@@ -412,7 +413,7 @@ export const toggleMealCompletion = async (mealIndex: number): Promise<boolean> 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
-    const today = format(new Date(), 'yyyy-MM-dd');
+    const today = getEffectiveDate();
 
     // Check if already completed
     const { data: existing } = await supabase
@@ -457,7 +458,7 @@ export const getWaterIntake = async (): Promise<number> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return 0;
 
-    const today = format(new Date(), 'yyyy-MM-dd');
+    const today = getEffectiveDate();
 
     const { data, error } = await supabase
       .from('water_intake')
@@ -480,7 +481,7 @@ export const addWaterIntake = async (amountMl: number): Promise<number> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
-    const today = format(new Date(), 'yyyy-MM-dd');
+    const today = getEffectiveDate();
 
     // Check if record exists for today
     const { data: existing } = await supabase

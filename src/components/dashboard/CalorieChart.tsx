@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp } from "lucide-react";
 import { format } from "date-fns";
+import { getEffectiveDate } from "@/lib/dateUtils";
 
 export default function CalorieChart() {
   const [chartData, setChartData] = useState<any[]>([]);

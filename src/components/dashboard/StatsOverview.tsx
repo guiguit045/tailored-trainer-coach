@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell, Flame, Droplet, Target } from "lucide-react";
 import { format } from "date-fns";
+import { getEffectiveDate } from "@/lib/dateUtils";
 
 interface Stats {
   totalWorkouts: number;
@@ -33,6 +34,7 @@ export default function StatsOverview() {
       const sevenDaysAgo = new Date(today);
       sevenDaysAgo.setDate(today.getDate() - 6);
       const weekStart = format(sevenDaysAgo, 'yyyy-MM-dd');
+      const effectiveToday = getEffectiveDate();
 
       // Total workouts (all time)
       const { count: totalWorkouts } = await supabase
@@ -54,7 +56,8 @@ export default function StatsOverview() {
         .from("consumed_meals")
         .select("calories")
         .eq("user_id", user.id)
-        .gte("meal_date", weekStart);
+        .gte("meal_date", weekStart)
+        .lte("meal_date", effectiveToday);
 
       const totalCalories = mealsData?.reduce((sum, meal) => sum + meal.calories, 0) || 0;
 
@@ -63,7 +66,8 @@ export default function StatsOverview() {
         .from("water_intake")
         .select("amount_ml")
         .eq("user_id", user.id)
-        .gte("intake_date", weekStart);
+        .gte("intake_date", weekStart)
+        .lte("intake_date", effectiveToday);
 
       const weeklyWater = waterData?.reduce((sum, entry) => sum + entry.amount_ml, 0) || 0;
 

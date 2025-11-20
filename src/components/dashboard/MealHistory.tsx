@@ -26,6 +26,7 @@ import { Trash2, Edit2, History, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { getEffectiveDate } from "@/lib/dateUtils";
 import { ptBR } from "date-fns/locale";
 
 interface ConsumedMeal {
@@ -71,7 +72,7 @@ export default function MealHistory({ onMealUpdated }: MealHistoryProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const today = format(new Date(), 'yyyy-MM-dd');
+      const today = getEffectiveDate();
       
       const { data, error } = await supabase
         .from('consumed_meals')

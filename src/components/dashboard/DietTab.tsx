@@ -16,6 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion, AnimatePresence } from "framer-motion";
 import { waterSound } from "@/lib/waterSound";
 import { format } from "date-fns";
+import { getEffectiveDate } from "@/lib/dateUtils";
 import type { QuizData } from "@/pages/Quiz";
 interface DietTabProps {
   quizData: QuizData;
@@ -307,7 +308,7 @@ export default function DietTab({
         }
       } = await supabase.auth.getUser();
       if (!user) return;
-      const today = format(new Date(), 'yyyy-MM-dd');
+      const today = getEffectiveDate();
       const {
         data,
         error
