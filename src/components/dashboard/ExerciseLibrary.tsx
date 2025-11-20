@@ -25,8 +25,9 @@ interface Exercise {
 
 const RAPIDAPI_KEY = "6c5912ddddmsh039de1d7dbb33bbp10d478jsn984f546dd437";
 
-const getExerciseImageUrl = (exerciseId: string, resolution: string = "500") => {
-  return `https://exercisedb.p.rapidapi.com/image?exerciseId=${exerciseId}&resolution=${resolution}&rapidapi-key=${RAPIDAPI_KEY}`;
+// ExerciseDB API já retorna gifUrl no response, vamos usar isso diretamente
+const getExerciseImageUrl = (exerciseId: string) => {
+  return `https://v2.exercisedb.io/image/${exerciseId}`;
 };
 
 const bodyPartTranslations: Record<string, string> = {
@@ -104,7 +105,10 @@ const ExerciseLibrary = () => {
 
             if (response.ok) {
               const data = await response.json();
+              console.log('Exercícios recebidos:', data.slice(0, 2)); // Log para debug
               allExercises.push(...data);
+            } else {
+              console.error('Erro na resposta da API:', response.status, await response.text());
             }
           } catch (error) {
             console.error(`Error fetching ${bodyPart}:`, error);
@@ -228,6 +232,7 @@ const ExerciseLibrary = () => {
                           className="w-full h-full object-contain"
                           loading="lazy"
                           onError={(e) => {
+                            console.error('Erro ao carregar imagem:', exercise.id);
                             e.currentTarget.style.display = 'none';
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
@@ -290,10 +295,11 @@ const ExerciseLibrary = () => {
               <div className="space-y-4">
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
                   <img
-                    src={getExerciseImageUrl(selectedExercise.id, "720")}
+                    src={getExerciseImageUrl(selectedExercise.id)}
                     alt={selectedExercise.name}
                     className="w-full h-full object-contain"
                     onError={(e) => {
+                      console.error('Erro ao carregar demonstração:', selectedExercise.id);
                       e.currentTarget.style.display = 'none';
                       const parent = e.currentTarget.parentElement;
                       if (parent) {
