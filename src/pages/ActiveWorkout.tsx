@@ -333,8 +333,16 @@ const ActiveWorkout = () => {
   const openExerciseVideo = async (exerciseName: string) => {
     setVideoDialog({ isOpen: true, exercise: null, loading: true });
     
+    console.log('=== DEBUG: Abrindo vídeo ===');
+    console.log('Nome do exercício:', exerciseName);
+    console.log('VITE_RAPIDAPI_KEY existe?', !!import.meta.env.VITE_RAPIDAPI_KEY);
+    console.log('VITE_RAPIDAPI_KEY valor (primeiros 20 chars):', import.meta.env.VITE_RAPIDAPI_KEY?.substring(0, 20));
+    
     try {
       const exerciseData = await searchExerciseByName(exerciseName);
+      
+      console.log('=== Resultado da busca ===');
+      console.log('Exercício encontrado?', !!exerciseData);
       
       if (exerciseData) {
         setVideoDialog({ isOpen: true, exercise: exerciseData, loading: false });
