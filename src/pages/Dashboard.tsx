@@ -11,6 +11,7 @@ import type { QuizData } from "./Quiz";
 import WorkoutTab from "@/components/dashboard/WorkoutTab";
 import DietTab from "@/components/dashboard/DietTab";
 import StreakIndicator from "@/components/workout/StreakIndicator";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { getQuizResponses, getActiveWorkoutPlan } from "@/lib/workoutStorage";
 
 const Dashboard = () => {
@@ -161,7 +162,8 @@ const Dashboard = () => {
             <h1 className="text-3xl font-bold">FitPro</h1>
             <p className="text-sm opacity-90 mt-1">Seu Personal Trainer Digital</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <ThemeToggle />
             <Button 
               variant="outline" 
               size="sm"
