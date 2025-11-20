@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Apple, TrendingUp, ChevronRight } from "lucide-react";
+import { Dumbbell, Apple, TrendingUp, ChevronRight, Bot, Camera } from "lucide-react";
 
 const onboardingSlides = [
   {
@@ -15,6 +15,18 @@ const onboardingSlides = [
     title: "Dieta Sob Medida",
     description: "Alimentação personalizada respeitando suas preferências e restrições",
     color: "bg-secondary",
+  },
+  {
+    icon: Camera,
+    title: "Análise de Refeições",
+    description: "Tire uma foto da sua refeição e receba informações detalhadas sobre calorias e nutrientes",
+    color: "bg-accent",
+  },
+  {
+    icon: Bot,
+    title: "TrainerIA Inteligente",
+    description: "Seu personal trainer disponível 24/7 para tirar dúvidas sobre treinos, nutrição e saúde",
+    color: "bg-primary",
   },
   {
     icon: TrendingUp,
