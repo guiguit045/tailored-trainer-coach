@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Apple, Settings, LogOut, BarChart3, User } from "lucide-react";
+import { Dumbbell, Apple, Settings, LogOut, BarChart3, User, Target, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,13 +14,36 @@ import StreakIndicator from "@/components/workout/StreakIndicator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getQuizResponses, getActiveWorkoutPlan } from "@/lib/workoutStorage";
 
+const motivationalQuotes = [
+  "A única pessoa que você deve superar é quem você era ontem.",
+  "Seus limites são apenas ilusões criadas pela sua mente.",
+  "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
+  "Não conte os dias, faça os dias contarem.",
+  "Sua saúde é um investimento, não uma despesa.",
+  "O progresso, não a perfeição, é o que realmente importa.",
+  "Acredite em si mesmo e tudo será possível.",
+  "O corpo alcança o que a mente acredita.",
+  "Cada treino é um passo mais perto do seu objetivo.",
+  "A disciplina é a ponte entre objetivos e conquistas.",
+];
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [userName, setUserName] = useState<string>("");
+  const [dailyQuote, setDailyQuote] = useState<string>("");
+  const [targetWeight, setTargetWeight] = useState<number>(0);
   const defaultTab = searchParams.get("tab") || "workout";
+
+  // Get daily motivational quote
+  useEffect(() => {
+    const today = new Date();
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+    const quoteIndex = dayOfYear % motivationalQuotes.length;
+    setDailyQuote(motivationalQuotes[quoteIndex]);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -95,6 +118,21 @@ const Dashboard = () => {
           }
 
           setQuizData(quizDataConverted);
+          
+          // Calculate target weight based on goal
+          const currentWeight = parseFloat(dbQuizData.weight?.toString() || "0");
+          let calculatedTarget = currentWeight;
+          
+          if (dbQuizData.goal === "lose") {
+            // For weight loss: reduce 5-10% of current weight
+            calculatedTarget = Math.round(currentWeight * 0.9);
+          } else if (dbQuizData.goal === "gain") {
+            // For muscle gain: increase 5-8% of current weight
+            calculatedTarget = Math.round(currentWeight * 1.07);
+          }
+          
+          setTargetWeight(calculatedTarget);
+          
           // Also update localStorage for compatibility
           localStorage.setItem("quizData", JSON.stringify(quizDataConverted));
         } else {
@@ -195,26 +233,37 @@ const Dashboard = () => {
       </header>
 
       <main className="max-w-7xl mx-auto py-8 px-4">
-        <Card className="p-6 mb-6 bg-gradient-card shadow-medium">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-1">
-                Olá{userName ? `, ${userName}` : ""}! 👋
+        <Card className="p-4 md:p-6 mb-6 bg-gradient-card shadow-medium">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h2 className="text-lg md:text-xl font-semibold mb-2 flex items-center gap-2">
+                👋 Olá{userName ? `, ${userName}` : ""}!
               </h2>
-              <p className="text-muted-foreground">
-                Seu objetivo: <span className="font-semibold text-foreground">
-                  {quizData.mainGoal === "weight-loss" && "Emagrecimento"}
-                  {quizData.mainGoal === "muscle-gain" && "Ganho de Massa Muscular"}
-                  {quizData.mainGoal === "conditioning" && "Condicionamento Físico"}
-                  {quizData.mainGoal === "health" && "Saúde Geral"}
-                  {quizData.mainGoal === "endurance" && "Resistência"}
-                </span>
+              <p className="text-sm md:text-base text-muted-foreground italic">
+                "{dailyQuote}"
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Peso Atual</p>
-              <p className="text-3xl font-bold text-primary">{quizData.currentWeight}kg</p>
-              <p className="text-xs text-muted-foreground">Meta: {quizData.desiredWeight}kg</p>
+            
+            <div className="flex gap-4 md:gap-6">
+              <div className="text-center md:text-left">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <p className="text-xs text-muted-foreground">Peso Atual</p>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-primary">
+                  {quizData.currentWeight}kg
+                </p>
+              </div>
+              
+              <div className="text-center md:text-left">
+                <div className="flex items-center gap-2 mb-1">
+                  <Target className="h-4 w-4 text-secondary" />
+                  <p className="text-xs text-muted-foreground">Meta</p>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-secondary">
+                  {targetWeight}kg
+                </p>
+              </div>
             </div>
           </div>
         </Card>
