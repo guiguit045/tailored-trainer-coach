@@ -1,5 +1,5 @@
-const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
-const RAPIDAPI_HOST = 'exercisedb.p.rapidapi.com';
+import { supabase } from "@/integrations/supabase/client";
+
 const CACHE_KEY = 'exercisedb_cache';
 const CACHE_EXPIRATION_DAYS = 7;
 
@@ -179,50 +179,30 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
     console.log('Buscando exercício (não encontrado no cache):', exerciseName);
     console.log('Termos de busca:', searchTerms);
     
-    if (!RAPIDAPI_KEY) {
-      console.error('RAPIDAPI_KEY não configurada!');
-      return null;
-    }
-    
-    // Tenta buscar com cada termo de busca
+    // Tenta buscar com cada termo de busca via edge function
     for (const searchTerm of searchTerms) {
-      const encodedTerm = searchTerm.replace(/\s+/g, '%20');
-      
-      const response = await fetch(
-        `https://${RAPIDAPI_HOST}/exercises/name/${encodedTerm}?limit=3`,
-        {
-          method: 'GET',
-          headers: {
-            'x-rapidapi-host': RAPIDAPI_HOST,
-            'x-rapidapi-key': RAPIDAPI_KEY,
-          },
-        }
-      );
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('ExerciseDB API error:', response.status, errorText);
-        continue;
-      }
+      try {
+        const { data, error } = await supabase.functions.invoke('search-exercise', {
+          body: { exerciseName: searchTerm }
+        });
 
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const exercise = data[0];
-        const exerciseData: ExerciseVideo = {
-          id: exercise.id,
-          name: exercise.name,
-          gifUrl: exercise.gifUrl,
-          target: exercise.target,
-          bodyPart: exercise.bodyPart,
-          equipment: exercise.equipment,
-          instructions: exercise.instructions || [],
-        };
-        
-        // Salva no cache
-        cacheExercise(exerciseName, exerciseData);
-        
-        return exerciseData;
+        if (error) {
+          console.error(`Erro ao buscar "${searchTerm}":`, error);
+          continue;
+        }
+
+        if (data && !data.error) {
+          const exerciseData: ExerciseVideo = data;
+          
+          // Salva no cache
+          cacheExercise(exerciseName, exerciseData);
+          console.log('Exercício encontrado e cacheado:', exerciseName);
+          
+          return exerciseData;
+        }
+      } catch (searchError) {
+        console.error(`Erro ao buscar "${searchTerm}":`, searchError);
+        continue;
       }
     }
 
