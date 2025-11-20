@@ -240,65 +240,87 @@ export default function MealHistory({ onMealUpdated }: MealHistoryProps) {
           <div className="space-y-3">
             {meals.map((meal) => (
               <Card key={meal.id} className="p-4">
-                <div className="flex items-start gap-3">
-                  {/* Meal Photo */}
-                  {meal.photo_url && (
-                    <div className="flex-shrink-0">
-                      <img 
-                        src={meal.photo_url} 
-                        alt={meal.meal_name}
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
-                    </div>
-                  )}
-
-                  {/* Meal Info */}
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-semibold text-foreground">{meal.meal_name}</h4>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(meal.created_at), "HH:mm", { locale: ptBR })}
-                        </p>
+                <div className="space-y-3">
+                  {/* Header with photo and main info */}
+                  <div className="flex items-start gap-3">
+                    {/* Meal Photo */}
+                    {meal.photo_url && (
+                      <div className="flex-shrink-0">
+                        <img 
+                          src={meal.photo_url} 
+                          alt={meal.meal_name}
+                          className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
+                        />
                       </div>
-                      <Badge variant="outline" className="text-sm">
+                    )}
+
+                    {/* Meal Info */}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <h4 className="font-semibold text-foreground truncate">{meal.meal_name}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(meal.created_at), "HH:mm", { locale: ptBR })}
+                      </p>
+                      <Badge variant="outline" className="text-xs sm:text-sm">
                         {meal.calories} kcal
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div>
-                        <span className="text-muted-foreground">Carb:</span>
-                        <span className="ml-1 font-medium text-foreground">{meal.carbs}g</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Prot:</span>
-                        <span className="ml-1 font-medium text-foreground">{meal.protein}g</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Gord:</span>
-                        <span className="ml-1 font-medium text-foreground">{meal.fat}g</span>
-                      </div>
+                    {/* Action Buttons - Desktop */}
+                    <div className="hidden sm:flex flex-col gap-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleEditClick(meal)}
+                        className="h-8 w-8"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDeleteClick(meal)}
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex flex-col gap-2">
+                  {/* Nutritional Info */}
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="bg-muted/50 rounded-lg p-2 text-center">
+                      <div className="text-muted-foreground">Carb</div>
+                      <div className="font-medium text-foreground">{meal.carbs}g</div>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-2 text-center">
+                      <div className="text-muted-foreground">Prot</div>
+                      <div className="font-medium text-foreground">{meal.protein}g</div>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-2 text-center">
+                      <div className="text-muted-foreground">Gord</div>
+                      <div className="font-medium text-foreground">{meal.fat}g</div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons - Mobile */}
+                  <div className="flex sm:hidden gap-2">
                     <Button
-                      size="icon"
-                      variant="ghost"
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleEditClick(meal)}
-                      className="h-8 w-8"
+                      className="flex-1"
                     >
-                      <Edit2 className="h-4 w-4" />
+                      <Edit2 className="h-3 w-3 mr-1" />
+                      Editar
                     </Button>
                     <Button
-                      size="icon"
-                      variant="ghost"
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleDeleteClick(meal)}
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="flex-1 text-destructive hover:text-destructive"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Remover
                     </Button>
                   </div>
                 </div>
