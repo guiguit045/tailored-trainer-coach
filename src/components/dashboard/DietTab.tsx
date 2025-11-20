@@ -12,6 +12,7 @@ import MealHistory from "./MealHistory";
 import GoalEditor from "./GoalEditor";
 import { calculateNutritionGoals } from "@/lib/nutritionCalculator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { QuizData } from "@/pages/Quiz";
 
 interface DietTabProps {
@@ -298,10 +299,16 @@ export default function DietTab({ quizData }: DietTabProps) {
       {/* Meal Suggestions Accordion */}
       <Card className="p-6">
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-foreground">Sugestões de Refeições</h3>
-          <p className="text-sm text-muted-foreground">
-            Clique em cada refeição para ver as sugestões personalizadas baseadas no seu objetivo
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h3 className="text-xl font-semibold text-foreground">Sugestões de Refeições</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Clique em cada refeição para ver as sugestões personalizadas baseadas no seu objetivo
+            </p>
+          </motion.div>
           
           <Accordion type="single" collapsible className="w-full">
             {meals.map((meal, index) => {
@@ -310,40 +317,77 @@ export default function DietTab({ quizData }: DietTabProps) {
               return (
                 <AccordionItem key={index} value={`meal-${index}`}>
                   <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="p-2 rounded-lg bg-muted">
+                    <motion.div 
+                      className="flex items-center gap-3 flex-1"
+                      whileHover={{ x: 4 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <motion.div 
+                        className="p-2 rounded-lg bg-muted"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.2 }}
+                      >
                         <Icon className="h-5 w-5 text-muted-foreground" />
-                      </div>
+                      </motion.div>
                       <div className="flex items-center justify-between flex-1 text-left">
                         <span className="font-semibold">{meal.name}</span>
                         <Badge variant="secondary" className="mr-2">
                           {meal.calories}
                         </Badge>
                       </div>
-                    </div>
+                    </motion.div>
                   </AccordionTrigger>
                   
                   <AccordionContent>
-                    <div className="space-y-4 pt-4 pl-14">
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="space-y-4 pt-4 pl-14"
+                    >
                       <div className="space-y-2">
                         <h4 className="text-sm font-medium text-muted-foreground">Sugestão:</h4>
-                        <ul className="space-y-1">
+                        <motion.ul 
+                          className="space-y-1"
+                          initial="hidden"
+                          animate="visible"
+                          variants={{
+                            visible: {
+                              transition: {
+                                staggerChildren: 0.05
+                              }
+                            }
+                          }}
+                        >
                           {meal.foods.map((food, foodIndex) => (
-                            <li key={foodIndex} className="text-sm text-foreground flex items-start gap-2">
+                            <motion.li
+                              key={foodIndex}
+                              variants={{
+                                hidden: { opacity: 0, x: -10 },
+                                visible: { opacity: 1, x: 0 }
+                              }}
+                              className="text-sm text-foreground flex items-start gap-2"
+                            >
                               <span className="text-primary mt-1">•</span>
                               <span>{food}</span>
-                            </li>
+                            </motion.li>
                           ))}
-                        </ul>
+                        </motion.ul>
                       </div>
                       
-                      <div className="pt-2 border-t border-border/50">
+                      <motion.div 
+                        className="pt-2 border-t border-border/50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2, duration: 0.3 }}
+                      >
                         <div className="flex items-start gap-2">
                           <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                           <p className="text-sm text-muted-foreground">{meal.why}</p>
                         </div>
-                      </div>
-                    </div>
+                      </motion.div>
+                    </motion.div>
                   </AccordionContent>
                 </AccordionItem>
               );
