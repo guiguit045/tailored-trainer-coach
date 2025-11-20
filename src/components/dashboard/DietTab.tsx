@@ -262,6 +262,7 @@ export default function DietTab({
   const [totalCalories, setTotalCalories] = useState(0);
   const [isLoadingCalories, setIsLoadingCalories] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [mealHistoryKey, setMealHistoryKey] = useState(0);
 
   // Track which variation is shown for each meal (0, 1, or 2)
   const [mealVariations, setMealVariations] = useState<number[]>([0, 0, 0, 0]);
@@ -322,6 +323,12 @@ export default function DietTab({
       setIsLoadingCalories(false);
     }
   };
+  
+  const handleMealAdded = async () => {
+    await loadDailyCalories();
+    // Força atualização do histórico incrementando um contador
+    setMealHistoryKey(prev => prev + 1);
+  };
   const handleAddWater = async () => {
     // Play drinking sound
     if (soundEnabled) {
@@ -354,7 +361,7 @@ export default function DietTab({
         <GoalEditor defaultCalories={calculatedGoals.calories} defaultWater={calculatedGoals.waterMl} onGoalsUpdated={handleGoalsUpdated} />
       </div>
 
-      <MealPhotoCapture onMealAdded={loadDailyCalories} quizData={quizData} />
+      <MealPhotoCapture onMealAdded={handleMealAdded} quizData={quizData} />
 
       {/* Calorie Counter */}
       <Card className="p-6 bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
@@ -427,7 +434,7 @@ export default function DietTab({
       </Card>
 
       {/* Meal History */}
-      <MealHistory onMealUpdated={loadDailyCalories} />
+      <MealHistory key={mealHistoryKey} onMealUpdated={loadDailyCalories} />
 
       {/* Meal Suggestions Accordion */}
       <Card className="p-6">
