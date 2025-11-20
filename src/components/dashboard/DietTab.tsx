@@ -6,6 +6,8 @@ import { Coffee, Sun, Moon, Apple, Info, Droplet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getWaterIntake, addWaterIntake } from "@/lib/workoutStorage";
 import { celebrateCompletion } from "@/lib/confetti";
+import { supabase } from "@/integrations/supabase/client";
+import MealPhotoCapture from "./MealPhotoCapture";
 import type { QuizData } from "@/pages/Quiz";
 
 interface DietTabProps {
@@ -130,10 +132,18 @@ export default function DietTab({ quizData }: DietTabProps) {
   const [waterIntake, setWaterIntake] = useState(0);
   const [isLoadingWater, setIsLoadingWater] = useState(true);
   const [waterConfettiTriggered, setWaterConfettiTriggered] = useState(false);
+  const [totalCalories, setTotalCalories] = useState(0);
+  const [isLoadingCalories, setIsLoadingCalories] = useState(true);
 
   const meals = generateDiet(quizData);
   const waterGoal = 2000; // 2 litros = 2000ml
   const waterProgress = (waterIntake / waterGoal) * 100;
+  
+  // Calculate daily calorie goal based on user goal
+  const isWeightLoss = quizData.mainGoal === "weight-loss";
+  const isMuscleGain = quizData.mainGoal === "muscle-gain";
+  const calorieGoal = isWeightLoss ? 1500 : isMuscleGain ? 2500 : 2000;
+  const calorieProgress = (totalCalories / calorieGoal) * 100;
 
   useEffect(() => {
     const loadWaterIntake = async () => {
@@ -144,7 +154,37 @@ export default function DietTab({ quizData }: DietTabProps) {
       setWaterConfettiTriggered(intake >= waterGoal);
     };
     loadWaterIntake();
+    loadDailyCalories();
   }, []);
+
+  const loadDailyCalories = async () => {
+    setIsLoadingCalories(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data, error } = await supabase
+        .from('consumed_meals')
+        .select('calories')
+        .eq('user_id', user.id)
+        .eq('meal_date', today);
+
+      if (error) throw error;
+
+      const total = data?.reduce((sum, meal) => sum + meal.calories, 0) || 0;
+      setTotalCalories(total);
+      
+      if (total >= calorieGoal) {
+        celebrateCompletion();
+      }
+    } catch (error) {
+      console.error('Error loading calories:', error);
+    } finally {
+      setIsLoadingCalories(false);
+    }
+  };
 
   const handleAddWater = async () => {
     const newIntake = await addWaterIntake(200);
@@ -169,6 +209,34 @@ export default function DietTab({ quizData }: DietTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* Meal Photo Capture */}
+      <MealPhotoCapture onMealAdded={loadDailyCalories} />
+
+      {/* Calorie Counter */}
+      <Card className="p-6 bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground">Calorias de Hoje</h3>
+            <Badge variant="outline" className="text-sm">
+              {totalCalories} / {calorieGoal} kcal
+            </Badge>
+          </div>
+          
+          <div className="relative h-4 bg-muted/50 rounded-full overflow-hidden">
+            <div 
+              className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-orange-500 to-orange-400 transition-all duration-500 ease-out"
+              style={{ width: `${Math.min(calorieProgress, 100)}%` }}
+            />
+          </div>
+
+          <p className="text-sm text-muted-foreground text-center">
+            {calorieProgress >= 100 
+              ? "Meta de calorias atingida! 🎉" 
+              : `Faltam ${calorieGoal - totalCalories} kcal para sua meta`}
+          </p>
+        </div>
+      </Card>
+
       {/* Water Intake Tracker */}
       <Card className="p-6 bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
         <div className="space-y-3">
