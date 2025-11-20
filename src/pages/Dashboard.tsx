@@ -197,7 +197,7 @@ const Dashboard = () => {
         variant: "destructive",
       });
     } else {
-      navigate("/auth");
+      navigate("/");
     }
   };
 
