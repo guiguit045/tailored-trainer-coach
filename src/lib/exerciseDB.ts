@@ -1,5 +1,7 @@
 const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
 const RAPIDAPI_HOST = 'exercisedb.p.rapidapi.com';
+const CACHE_KEY = 'exercisedb_cache';
+const CACHE_EXPIRATION_DAYS = 7;
 
 export interface ExerciseVideo {
   id: string;
@@ -9,6 +11,79 @@ export interface ExerciseVideo {
   bodyPart: string;
   equipment: string;
   instructions: string[];
+}
+
+interface CachedExercise extends ExerciseVideo {
+  cachedAt: number;
+}
+
+interface ExerciseCache {
+  [exerciseName: string]: CachedExercise;
+}
+
+// Funções de cache
+function getCache(): ExerciseCache {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    return cached ? JSON.parse(cached) : {};
+  } catch (error) {
+    console.error('Erro ao ler cache:', error);
+    return {};
+  }
+}
+
+function setCache(cache: ExerciseCache): void {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch (error) {
+    console.error('Erro ao salvar cache:', error);
+  }
+}
+
+function getCachedExercise(exerciseName: string): ExerciseVideo | null {
+  const cache = getCache();
+  const normalizedName = exerciseName.toLowerCase().trim();
+  const cached = cache[normalizedName];
+  
+  if (!cached) return null;
+  
+  // Verifica se o cache expirou
+  const now = Date.now();
+  const expirationTime = CACHE_EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
+  
+  if (now - cached.cachedAt > expirationTime) {
+    console.log('Cache expirado para:', exerciseName);
+    return null;
+  }
+  
+  console.log('Exercício encontrado no cache:', exerciseName);
+  return {
+    id: cached.id,
+    name: cached.name,
+    gifUrl: cached.gifUrl,
+    target: cached.target,
+    bodyPart: cached.bodyPart,
+    equipment: cached.equipment,
+    instructions: cached.instructions,
+  };
+}
+
+function cacheExercise(exerciseName: string, exercise: ExerciseVideo): void {
+  const cache = getCache();
+  const normalizedName = exerciseName.toLowerCase().trim();
+  
+  cache[normalizedName] = {
+    ...exercise,
+    cachedAt: Date.now(),
+  };
+  
+  setCache(cache);
+  console.log('Exercício salvo no cache:', exerciseName);
+}
+
+export function clearExerciseCache(): void {
+  localStorage.removeItem(CACHE_KEY);
+  console.log('Cache de exercícios limpo');
 }
 
 // Mapeamento de exercícios PT -> EN para melhor correspondência
@@ -93,12 +168,16 @@ function translateExerciseName(exerciseName: string): string[] {
 
 export async function searchExerciseByName(exerciseName: string): Promise<ExerciseVideo | null> {
   try {
+    // Verifica o cache primeiro
+    const cachedExercise = getCachedExercise(exerciseName);
+    if (cachedExercise) {
+      return cachedExercise;
+    }
+    
     const searchTerms = translateExerciseName(exerciseName);
     
-    console.log('Buscando exercício:', exerciseName);
+    console.log('Buscando exercício (não encontrado no cache):', exerciseName);
     console.log('Termos de busca:', searchTerms);
-    console.log('API Key presente?', !!RAPIDAPI_KEY);
-    console.log('API Key (primeiros 10 chars):', RAPIDAPI_KEY?.substring(0, 10));
     
     if (!RAPIDAPI_KEY) {
       console.error('RAPIDAPI_KEY não configurada!');
@@ -108,8 +187,6 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
     // Tenta buscar com cada termo de busca
     for (const searchTerm of searchTerms) {
       const encodedTerm = searchTerm.replace(/\s+/g, '%20');
-      
-      console.log('Fazendo request para:', `https://${RAPIDAPI_HOST}/exercises/name/${encodedTerm}?limit=3`);
       
       const response = await fetch(
         `https://${RAPIDAPI_HOST}/exercises/name/${encodedTerm}?limit=3`,
@@ -121,8 +198,6 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
           },
         }
       );
-
-      console.log('Status da resposta:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -131,11 +206,10 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
       }
 
       const data = await response.json();
-      console.log('Resposta da API (sucesso):', data);
       
       if (data && data.length > 0) {
         const exercise = data[0];
-        return {
+        const exerciseData: ExerciseVideo = {
           id: exercise.id,
           name: exercise.name,
           gifUrl: exercise.gifUrl,
@@ -144,6 +218,11 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
           equipment: exercise.equipment,
           instructions: exercise.instructions || [],
         };
+        
+        // Salva no cache
+        cacheExercise(exerciseName, exerciseData);
+        
+        return exerciseData;
       }
     }
 
