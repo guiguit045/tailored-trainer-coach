@@ -20,9 +20,14 @@ interface Exercise {
   bodyPart: string;
   target: string;
   equipment: string;
-  gifUrl: string;
   instructions: string[];
 }
+
+const RAPIDAPI_KEY = "6c5912ddddmsh039de1d7dbb33bbp10d478jsn984f546dd437";
+
+const getExerciseImageUrl = (exerciseId: string, resolution: string = "500") => {
+  return `https://exercisedb.p.rapidapi.com/image?exerciseId=${exerciseId}&resolution=${resolution}&rapidapi-key=${RAPIDAPI_KEY}`;
+};
 
 const bodyPartTranslations: Record<string, string> = {
   "back": "Costas",
@@ -217,23 +222,19 @@ const ExerciseLibrary = () => {
                       onClick={() => setSelectedExercise(exercise)}
                     >
                       <div className="aspect-video bg-muted relative overflow-hidden flex items-center justify-center">
-                        {exercise.gifUrl ? (
-                          <img
-                            src={exercise.gifUrl}
-                            alt={exercise.name}
-                            className="w-full h-full object-contain"
-                            loading="lazy"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              const parent = e.currentTarget.parentElement;
-                              if (parent) {
-                                parent.innerHTML = '<div class="text-muted-foreground text-sm p-4 text-center">Imagem não disponível</div>';
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="text-muted-foreground text-sm">Sem demonstração</div>
-                        )}
+                        <img
+                          src={getExerciseImageUrl(exercise.id)}
+                          alt={exercise.name}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="text-muted-foreground text-sm p-4 text-center">Imagem não disponível</div>';
+                            }
+                          }}
+                        />
                       </div>
                       <div className="p-4">
                         <h4 className="font-semibold mb-2 capitalize line-clamp-2">
@@ -288,22 +289,18 @@ const ExerciseLibrary = () => {
 
               <div className="space-y-4">
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-                  {selectedExercise.gifUrl ? (
-                    <img
-                      src={selectedExercise.gifUrl}
-                      alt={selectedExercise.name}
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const parent = e.currentTarget.parentElement;
-                        if (parent) {
-                          parent.innerHTML = '<div class="text-muted-foreground text-sm p-4 text-center">Demonstração não disponível</div>';
-                        }
-                      }}
-                    />
-                  ) : (
-                    <div className="text-muted-foreground text-sm">Sem demonstração</div>
-                  )}
+                  <img
+                    src={getExerciseImageUrl(selectedExercise.id, "720")}
+                    alt={selectedExercise.name}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="text-muted-foreground text-sm p-4 text-center">Demonstração não disponível</div>';
+                      }
+                    }}
+                  />
                 </div>
 
                 <div>
