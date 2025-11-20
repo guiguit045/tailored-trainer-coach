@@ -50,6 +50,8 @@ const ActiveWorkout = () => {
     exercise: null,
     loading: false,
   });
+  const [preloadingVideos, setPreloadingVideos] = useState(true);
+  const [preloadProgress, setPreloadProgress] = useState({ current: 0, total: 0 });
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -103,6 +105,9 @@ const ActiveWorkout = () => {
         setSetData(initialData);
         setSetsCount(initialCounts);
         setOriginalSetsCount(initialCounts);
+        
+        // Pré-carrega vídeos em background
+        preloadExerciseVideos(currentWorkout);
       } else {
         navigate("/dashboard?tab=workout");
       }
@@ -124,6 +129,37 @@ const ActiveWorkout = () => {
       if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
     };
   }, [navigate, workoutIndex, workoutStartTime]);
+
+  // Função para pré-carregar vídeos de todos os exercícios
+  const preloadExerciseVideos = async (currentWorkout: Workout) => {
+    const exercises = currentWorkout.exercises;
+    setPreloadProgress({ current: 0, total: exercises.length });
+    
+    console.log('Iniciando pré-carregamento de', exercises.length, 'vídeos...');
+    
+    // Carrega os vídeos em paralelo
+    const preloadPromises = exercises.map(async (exercise, index) => {
+      try {
+        await searchExerciseByName(exercise.name);
+        setPreloadProgress(prev => ({ ...prev, current: prev.current + 1 }));
+        console.log(`Vídeo ${index + 1}/${exercises.length} pré-carregado:`, exercise.name);
+      } catch (error) {
+        console.error('Erro ao pré-carregar vídeo:', exercise.name, error);
+        setPreloadProgress(prev => ({ ...prev, current: prev.current + 1 }));
+      }
+    });
+    
+    // Aguarda todos os vídeos serem carregados
+    await Promise.allSettled(preloadPromises);
+    
+    setPreloadingVideos(false);
+    console.log('Pré-carregamento de vídeos concluído!');
+    
+    toast({
+      title: "Vídeos carregados! 🎬",
+      description: "Todos os vídeos demonstrativos estão prontos.",
+    });
+  };
 
   const startRestTimer = (restSeconds: number) => {
     setIsResting(true);
@@ -331,6 +367,23 @@ const ActiveWorkout = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      {/* Preloading Indicator */}
+      {preloadingVideos && (
+        <div className="fixed top-16 left-0 right-0 z-20 px-4">
+          <div className="bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-lg p-3 flex items-center gap-3 animate-in slide-in-from-top">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            <div className="flex-1">
+              <p className="text-xs font-medium text-primary">
+                Carregando vídeos demonstrativos...
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {preloadProgress.current}/{preloadProgress.total} exercícios
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-background border-b sticky top-0 z-10 px-4 py-3">
         <div className="flex items-center gap-3">
