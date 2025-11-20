@@ -13,12 +13,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { ArrowLeft, ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -98,9 +92,6 @@ const ActiveWorkout = () => {
         setSetData(initialData);
         setSetsCount(initialCounts);
         setOriginalSetsCount(initialCounts);
-        
-        // Pré-carrega vídeos em background
-        preloadExerciseVideos(currentWorkout);
       } else {
         navigate("/dashboard?tab=workout");
       }
@@ -123,13 +114,7 @@ const ActiveWorkout = () => {
     };
   }, [navigate, workoutIndex, workoutStartTime]);
 
-  // Função para pré-carregar vídeos de todos os exercícios
-  const preloadExerciseVideos = async (currentWorkout: Workout) => {
-    const exercises = currentWorkout.exercises;
-    setPreloadProgress({ current: 0, total: exercises.length });
-
-  const startRestTimer = (restSeconds: number) => {
-    setIsResting(true);
+    const startRestTimer = (restSeconds: number) => {
     setRestTimeLeft(restSeconds);
     
     if (timerRef.current) clearInterval(timerRef.current);
@@ -308,22 +293,6 @@ const ActiveWorkout = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Preloading Indicator */}
-      {preloadingVideos && (
-        <div className="fixed top-16 left-0 right-0 z-20 px-4">
-          <div className="bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-lg p-3 flex items-center gap-3 animate-in slide-in-from-top">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-            <div className="flex-1">
-              <p className="text-xs font-medium text-primary">
-                Carregando vídeos demonstrativos...
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {preloadProgress.current}/{preloadProgress.total} exercícios
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Header */}
       <header className="bg-background border-b sticky top-0 z-10 px-4 py-3">
