@@ -354,7 +354,7 @@ export default function DietTab({
         <GoalEditor defaultCalories={calculatedGoals.calories} defaultWater={calculatedGoals.waterMl} onGoalsUpdated={handleGoalsUpdated} />
       </div>
 
-      <MealPhotoCapture onMealAdded={loadDailyCalories} />
+      <MealPhotoCapture onMealAdded={loadDailyCalories} quizData={quizData} />
 
       {/* Calorie Counter */}
       <Card className="p-6 bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
