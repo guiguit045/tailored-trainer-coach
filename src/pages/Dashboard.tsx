@@ -156,36 +156,36 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
-      <header className="bg-gradient-hero text-primary-foreground py-6 px-4 shadow-medium">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">FitPro</h1>
-            <p className="text-sm opacity-90 mt-1">Seu Personal Trainer Digital</p>
+      <header className="bg-gradient-hero text-primary-foreground py-4 md:py-6 px-3 md:px-4 shadow-medium">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-2">
+          <div className="flex-shrink-0">
+            <h1 className="text-xl md:text-3xl font-bold">FitPro</h1>
+            <p className="text-xs md:text-sm opacity-90 mt-1 hidden sm:block">Seu Personal Trainer Digital</p>
           </div>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-1 md:gap-2 items-center">
             <ThemeToggle />
             <Button 
               variant="outline" 
               size="sm"
-              className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20"
+              className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20 px-2 md:px-3"
               onClick={() => navigate("/workout/history")}
             >
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Histórico
+              <BarChart3 className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Histórico</span>
             </Button>
             <Button 
               variant="outline" 
               size="sm"
-              className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20"
+              className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20 px-2 md:px-3"
               onClick={() => navigate("/profile")}
             >
-              <User className="mr-2 h-4 w-4" />
-              Meu Perfil
+              <User className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Meu Perfil</span>
             </Button>
             <Button 
               variant="outline" 
               size="sm"
-              className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20"
+              className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20 px-2 md:px-3"
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
