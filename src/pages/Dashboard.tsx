@@ -13,6 +13,16 @@ import DietTab from "@/components/dashboard/DietTab";
 import StreakIndicator from "@/components/workout/StreakIndicator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getQuizResponses, getActiveWorkoutPlan } from "@/lib/workoutStorage";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const motivationalQuotes = [
   "A única pessoa que você deve superar é quem você era ontem.",
@@ -36,6 +46,7 @@ const Dashboard = () => {
   const [dailyQuote, setDailyQuote] = useState<string>("");
   const [targetWeight, setTargetWeight] = useState<number>(0);
   const [showNewRecordCelebration, setShowNewRecordCelebration] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const defaultTab = searchParams.get("tab") || "workout";
 
   // Get daily motivational quote
@@ -188,7 +199,7 @@ const Dashboard = () => {
     }
   }, [searchParams, navigate]);
 
-  const handleLogout = async () => {
+  const confirmLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast({
@@ -199,6 +210,7 @@ const Dashboard = () => {
     } else {
       navigate("/");
     }
+    setShowLogoutDialog(false);
   };
 
   if (!quizData) return null;
@@ -235,7 +247,7 @@ const Dashboard = () => {
               variant="outline" 
               size="sm"
               className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20 px-2 md:px-3"
-              onClick={handleLogout}
+              onClick={() => setShowLogoutDialog(true)}
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -320,6 +332,21 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza que deseja sair?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você será desconectado e precisará fazer login novamente para acessar sua conta.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLogout}>Sair</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
