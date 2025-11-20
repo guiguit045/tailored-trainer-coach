@@ -33,13 +33,37 @@ const Auth = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/quiz");
+        // Check if user has completed quiz
+        setTimeout(async () => {
+          const { data } = await supabase
+            .from('quiz_responses')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          
+          if (data) {
+            navigate("/dashboard");
+          } else {
+            navigate("/quiz");
+          }
+        }, 0);
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        navigate("/quiz");
+        // Check if user has completed quiz
+        const { data } = await supabase
+          .from('quiz_responses')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+        
+        if (data) {
+          navigate("/dashboard");
+        } else {
+          navigate("/quiz");
+        }
       }
     });
 

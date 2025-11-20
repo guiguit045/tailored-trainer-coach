@@ -31,7 +31,7 @@ const Welcome = () => {
 
   const handleNext = () => {
     if (isLastSlide) {
-      navigate("/auth");
+      navigate("/quiz");
     } else {
       setCurrentSlide((prev) => prev + 1);
     }
@@ -119,7 +119,7 @@ const Welcome = () => {
         {/* Skip Button */}
         {!isLastSlide && (
           <button
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/quiz")}
             className="w-full text-muted-foreground hover:text-foreground transition-colors text-sm"
           >
             Pular introdução
