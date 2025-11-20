@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import MealPhotoCapture from "./MealPhotoCapture";
 import MealHistory from "./MealHistory";
 import GoalEditor from "./GoalEditor";
+import WaterGlass from "./WaterGlass";
 import { calculateNutritionGoals } from "@/lib/nutritionCalculator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion, AnimatePresence } from "framer-motion";
@@ -475,8 +476,8 @@ export default function DietTab({ quizData }: DietTabProps) {
       </Card>
 
       {/* Water Intake Tracker */}
-      <Card className="p-6 bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
-        <div className="space-y-3">
+      <Card className="p-6 bg-gradient-to-br from-blue-500/5 to-cyan-500/10 border-blue-500/20">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Droplet className="h-5 w-5 text-blue-500" />
@@ -487,28 +488,36 @@ export default function DietTab({ quizData }: DietTabProps) {
             </Badge>
           </div>
           
-          <div className="relative h-32 w-20 mx-auto bg-muted/50 rounded-full border-2 border-border overflow-hidden">
-            <div 
-              className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-500 to-blue-400 transition-all duration-500 ease-out"
-              style={{ height: `${Math.min(waterProgress, 100)}%` }}
-            />
-          </div>
+          {/* Animated water glass */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <WaterGlass percentage={waterProgress} />
+          </motion.div>
 
           <Button 
             onClick={handleAddWater}
             variant="outline"
-            className="w-full"
+            className="w-full hover:bg-blue-500/10 hover:border-blue-500/50 transition-all"
             disabled={isLoadingWater}
           >
             <Droplet className="h-4 w-4 mr-2" />
             Bebi um copo (200ml)
           </Button>
 
-          <p className="text-sm text-muted-foreground text-center">
+          <motion.p 
+            className="text-sm text-muted-foreground text-center"
+            key={waterProgress >= 100 ? "complete" : "incomplete"}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             {waterProgress >= 100 
-              ? "Meta de hidratação atingida! 🎉" 
+              ? "🎉 Meta de hidratação atingida! Parabéns!" 
               : `Faltam ${waterGoalMl - waterIntake}ml para sua meta`}
-          </p>
+          </motion.p>
         </div>
       </Card>
 
