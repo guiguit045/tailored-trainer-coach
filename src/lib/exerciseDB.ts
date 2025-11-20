@@ -97,10 +97,19 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
     
     console.log('Buscando exercício:', exerciseName);
     console.log('Termos de busca:', searchTerms);
+    console.log('API Key presente?', !!RAPIDAPI_KEY);
+    console.log('API Key (primeiros 10 chars):', RAPIDAPI_KEY?.substring(0, 10));
+    
+    if (!RAPIDAPI_KEY) {
+      console.error('RAPIDAPI_KEY não configurada!');
+      return null;
+    }
     
     // Tenta buscar com cada termo de busca
     for (const searchTerm of searchTerms) {
       const encodedTerm = searchTerm.replace(/\s+/g, '%20');
+      
+      console.log('Fazendo request para:', `https://${RAPIDAPI_HOST}/exercises/name/${encodedTerm}?limit=3`);
       
       const response = await fetch(
         `https://${RAPIDAPI_HOST}/exercises/name/${encodedTerm}?limit=3`,
@@ -108,18 +117,21 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
           method: 'GET',
           headers: {
             'x-rapidapi-host': RAPIDAPI_HOST,
-            'x-rapidapi-key': RAPIDAPI_KEY || '',
+            'x-rapidapi-key': RAPIDAPI_KEY,
           },
         }
       );
 
+      console.log('Status da resposta:', response.status);
+      
       if (!response.ok) {
-        console.error('ExerciseDB API error:', response.status, await response.text());
+        const errorText = await response.text();
+        console.error('ExerciseDB API error:', response.status, errorText);
         continue;
       }
 
       const data = await response.json();
-      console.log('Resposta da API:', data);
+      console.log('Resposta da API (sucesso):', data);
       
       if (data && data.length > 0) {
         const exercise = data[0];
@@ -135,6 +147,7 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
       }
     }
 
+    console.log('Nenhum exercício encontrado após tentar todos os termos');
     return null;
   } catch (error) {
     console.error('Error fetching exercise from ExerciseDB:', error);

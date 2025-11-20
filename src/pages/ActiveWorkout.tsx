@@ -365,40 +365,41 @@ const ActiveWorkout = () => {
 
           return (
             <Card key={exerciseIdx} className="overflow-hidden">
-              <button
-                className="w-full p-4 text-left hover:bg-muted/50 transition-colors"
-                onClick={() => toggleExerciseExpanded(exerciseIdx)}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">💪</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-base mb-1">{exercise.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {completedCount}/{currentSetsCount} feito(s)
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openExerciseVideo(exercise.name);
-                      }}
-                    >
-                      <Play className="h-4 w-4" />
-                    </Button>
-                    {isExpanded ? (
-                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                    )}
+              <div className="w-full">
+                <div 
+                  className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => toggleExerciseExpanded(exerciseIdx)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                      <span className="text-2xl">💪</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-base mb-1">{exercise.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {completedCount}/{currentSetsCount} feito(s)
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openExerciseVideo(exercise.name);
+                        }}
+                      >
+                        <Play className="h-4 w-4" />
+                      </Button>
+                      {isExpanded ? (
+                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
                   </div>
                 </div>
-              </button>
 
               <AnimatePresence>
                 {isExpanded && (
@@ -487,6 +488,7 @@ const ActiveWorkout = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
+              </div>
             </Card>
           );
         })}
