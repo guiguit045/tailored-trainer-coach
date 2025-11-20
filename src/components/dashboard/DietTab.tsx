@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coffee, Sun, Moon, Apple, Info, Check, Droplet } from "lucide-react";
+import { Coffee, Sun, Moon, Apple, Info, Droplet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getMealCompletions, toggleMealCompletion, getWaterIntake, addWaterIntake } from "@/lib/workoutStorage";
+import { getWaterIntake, addWaterIntake } from "@/lib/workoutStorage";
 import { celebrateCompletion } from "@/lib/confetti";
 import type { QuizData } from "@/pages/Quiz";
 
