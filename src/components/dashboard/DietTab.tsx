@@ -101,330 +101,194 @@ const generateDiet = (quizData: QuizData): Meal[] => {
 
     dinner.foods = isVegetarian
       ? ["200g de grão-de-bico", "150g de batata doce", "Legumes variados", "Salada"]
-      : ["200g de frango ou peixe", "150g de batata doce ou mandioca", "Legumes variados", "Salada"];
-    dinner.why = "Proteína para recuperação noturna. Carboidratos para repor glicogênio.";
-    dinner.calories = "~550 kcal";
+      : ["200g de frango ou peixe", "150g de arroz integral", "Legumes assados", "Salada"];
+    dinner.why = "Refeição completa para recuperação noturna e síntese proteica.";
+    dinner.calories = "~600 kcal";
   } else {
-    breakfast.foods = ["2-3 ovos mexidos", "2 fatias de pão integral", "1 fruta", "Café ou chá"];
-    breakfast.why = "Equilíbrio de proteínas e carboidratos para energia matinal.";
+    breakfast.foods = ["Tapioca com queijo", "1 fruta", "Café com leite"];
+    breakfast.why = "Carboidratos de qualidade para energia matinal.";
     breakfast.calories = "~400 kcal";
 
-    lunch.foods = isVegetarian
-      ? ["Salada completa", "150g de lentilha ou grão-de-bico", "100g de arroz integral", "Legumes"]
-      : ["Salada completa", "150g de proteína (frango, peixe ou carne)", "100g de arroz integral", "Legumes"];
-    lunch.why = "Refeição balanceada com todos os macronutrientes essenciais.";
-    lunch.calories = "~500 kcal";
+    lunch.foods = ["Arroz e feijão", "Proteína (frango, peixe ou carne)", "Salada", "Legumes"];
+    lunch.why = "Refeição equilibrada com todos os nutrientes essenciais.";
+    lunch.calories = "~600 kcal";
 
-    snack.foods = ["1 fruta", "Punhado de castanhas ou iogurte"];
-    snack.why = "Lanche leve para manter energia e saciedade.";
-    snack.calories = "~150 kcal";
+    snack.foods = ["Frutas", "Castanhas", "Iogurte"];
+    snack.why = "Lanche nutritivo para manter energia entre refeições.";
+    snack.calories = "~250 kcal";
 
-    dinner.foods = isVegetarian
-      ? ["Omelete ou tofu", "Salada", "Legumes cozidos"]
-      : ["150g de proteína magra", "Salada", "Legumes cozidos"];
-    dinner.why = "Jantar leve e nutritivo para boa digestão.";
+    dinner.foods = ["Sopa de legumes", "Proteína grelhada", "Salada"];
+    dinner.why = "Jantar leve para boa digestão noturna.";
     dinner.calories = "~400 kcal";
   }
 
   return [breakfast, lunch, snack, dinner];
 };
 
-const DietTab = ({ quizData }: DietTabProps) => {
+export default function DietTab({ quizData }: DietTabProps) {
   const { toast } = useToast();
-  const diet = generateDiet(quizData);
-  const [completedMeals, setCompletedMeals] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState<Record<number, boolean>>({});
-  const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
   const [waterIntake, setWaterIntake] = useState(0);
-  const [isLoadingWater, setIsLoadingWater] = useState(false);
-  
+  const [isLoadingWater, setIsLoadingWater] = useState(true);
+  const [waterConfettiTriggered, setWaterConfettiTriggered] = useState(false);
+
+  const meals = generateDiet(quizData);
+  const waterGoal = 2000; // 2 litros = 2000ml
+  const waterProgress = (waterIntake / waterGoal) * 100;
+
   useEffect(() => {
-    loadMealCompletions();
+    const loadWaterIntake = async () => {
+      setIsLoadingWater(true);
+      const intake = await getWaterIntake();
+      setWaterIntake(intake);
+      setIsLoadingWater(false);
+      setWaterConfettiTriggered(intake >= waterGoal);
+    };
     loadWaterIntake();
   }, []);
 
-  const loadWaterIntake = async () => {
-    const intake = await getWaterIntake();
-    setWaterIntake(intake);
-  };
-
-  const loadMealCompletions = async () => {
-    const completed = await getMealCompletions();
-    setCompletedMeals(completed);
-  };
-
-  const handleToggleMeal = async (mealIndex: number) => {
-    setIsLoading(prev => ({ ...prev, [mealIndex]: true }));
-    try {
-      const isCompleted = await toggleMealCompletion(mealIndex);
-      
-      if (isCompleted) {
-        setCompletedMeals(prev => [...prev, mealIndex]);
-        toast({
-          title: "Refeição registrada! 🍽️",
-          description: "Continue assim para manter sua dieta em dia!",
-        });
-      } else {
-        setCompletedMeals(prev => prev.filter(idx => idx !== mealIndex));
-        setHasTriggeredConfetti(false); // Reset confetti flag when uncompleting
-        toast({
-          title: "Registro removido",
-          description: "Refeição desmarcada",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o registro",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(prev => ({ ...prev, [mealIndex]: false }));
-    }
-  };
-  
-  const totalCalories = diet.reduce((sum, meal) => {
-    const cals = parseInt(meal.calories.match(/\d+/)?.[0] || "0");
-    return sum + cals;
-  }, 0);
-
-  const completedCount = completedMeals.length;
-  const totalMeals = diet.length;
-
-  // Calculate consumed calories
-  const consumedCalories = diet.reduce((sum, meal, index) => {
-    if (completedMeals.includes(index)) {
-      const cals = parseInt(meal.calories.match(/\d+/)?.[0] || "0");
-      return sum + cals;
-    }
-    return sum;
-  }, 0);
-
-  const caloriesProgress = (consumedCalories / totalCalories) * 100;
-
   const handleAddWater = async () => {
-    setIsLoadingWater(true);
-    try {
-      const newAmount = await addWaterIntake(200);
-      setWaterIntake(newAmount);
-      
-      if (newAmount >= 2000 && waterIntake < 2000) {
-        celebrateCompletion();
-        toast({
-          title: "🎉 Meta de água atingida!",
-          description: "Você bebeu 2 litros de água hoje!",
-        });
-      } else {
-        toast({
-          title: "Água registrada! 💧",
-          description: `Você bebeu ${newAmount}ml hoje. Continue hidratado!`,
-        });
-      }
-    } catch (error) {
+    const newIntake = await addWaterIntake(200);
+    setWaterIntake(newIntake);
+    
+    toast({
+      title: "Água adicionada! 💧",
+      description: `Você bebeu ${newIntake}ml de ${waterGoal}ml hoje`,
+    });
+
+    if (newIntake >= waterGoal && !waterConfettiTriggered) {
+      celebrateCompletion();
+      setWaterConfettiTriggered(true);
       toast({
-        title: "Erro",
-        description: "Não foi possível registrar a água",
-        variant: "destructive",
+        title: "Meta de água atingida! 🎉",
+        description: "Parabéns! Você completou sua meta de hidratação hoje!",
       });
-    } finally {
-      setIsLoadingWater(false);
     }
   };
 
-  // Trigger confetti when goal is reached
-  useEffect(() => {
-    if (caloriesProgress >= 100 && !hasTriggeredConfetti && completedMeals.length > 0) {
-      celebrateCompletion();
-      setHasTriggeredConfetti(true);
-      toast({
-        title: "🎉 Parabéns! Meta atingida!",
-        description: "Você completou todas as calorias do dia!",
-      });
-    }
-  }, [caloriesProgress, hasTriggeredConfetti, completedMeals.length]);
-
-  const waterGoal = 2000; // 2L in ml
-  const waterProgress = (waterIntake / waterGoal) * 100;
-  const glassCount = Math.floor(waterIntake / 200);
+  const hasAllergies = quizData.allergies && quizData.allergies !== "none";
 
   return (
-    <div className="space-y-4">
-      {/* Calories Progress Bar */}
-      <Card className="p-6 bg-gradient-card shadow-medium overflow-hidden">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-xl font-bold">Calorias de Hoje</h3>
-            <p className="text-sm text-muted-foreground">
-              {consumedCalories} / {totalCalories} kcal
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-primary">{Math.round(caloriesProgress)}%</div>
-            <p className="text-xs text-muted-foreground">
-              {completedCount}/{totalMeals} refeições
-            </p>
-          </div>
-        </div>
-        
-        {/* Progress Bar */}
-        <div className="relative h-4 bg-muted rounded-full overflow-hidden">
-          <div
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out rounded-full"
-            style={{ width: `${Math.min(caloriesProgress, 100)}%` }}
-          >
-            {caloriesProgress > 10 && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xs font-bold text-primary-foreground">
-                  {consumedCalories} kcal
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {caloriesProgress >= 100 && (
-          <div className="mt-3 text-center">
-            <Badge variant="default" className="bg-green-600">
-              🎉 Meta de calorias atingida!
+    <div className="space-y-6">
+      {/* Water Intake Tracker */}
+      <Card className="p-6 bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Droplet className="h-5 w-5 text-blue-500" />
+              <h3 className="text-lg font-semibold text-foreground">Água de Hoje</h3>
+            </div>
+            <Badge variant="outline" className="text-sm">
+              {waterIntake} / {waterGoal} ml
             </Badge>
           </div>
-        )}
-        
-        {quizData.allergies === "yes" && (
-          <div className="mt-3">
-            <Badge variant="destructive" className="text-xs">
-              ⚠️ Evitar: {quizData.allergiesList}
-            </Badge>
-          </div>
-        )}
-      </Card>
-
-      {/* Water Intake Card */}
-      <Card className="p-6 bg-gradient-card shadow-medium overflow-hidden">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-xl font-bold">Água Hoje</h3>
-            <p className="text-sm text-muted-foreground">
-              {waterIntake}ml / {waterGoal}ml
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-primary">{Math.round(waterProgress)}%</div>
-            <p className="text-xs text-muted-foreground">
-              {glassCount} copos
-            </p>
-          </div>
-        </div>
-
-        {/* Glass Visual */}
-        <div className="flex items-center gap-4 mb-4">
-          <div className="relative w-20 h-32 border-4 border-primary rounded-b-3xl overflow-hidden bg-muted/20">
-            {/* Water fill */}
+          
+          <div className="relative h-32 w-20 mx-auto bg-muted/50 rounded-full border-2 border-border overflow-hidden">
             <div 
               className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-500 to-blue-400 transition-all duration-500 ease-out"
               style={{ height: `${Math.min(waterProgress, 100)}%` }}
-            >
-              {waterProgress > 20 && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Droplet className="h-6 w-6 text-white/80" />
-                </div>
-              )}
-            </div>
+            />
           </div>
-          
-          <Button
+
+          <Button 
             onClick={handleAddWater}
+            variant="outline"
+            className="w-full"
             disabled={isLoadingWater}
-            size="lg"
-            className="flex-1"
           >
-            <Droplet className="h-5 w-5 mr-2" />
+            <Droplet className="h-4 w-4 mr-2" />
             Bebi um copo (200ml)
           </Button>
-        </div>
 
-        {waterProgress >= 100 && (
-          <div className="text-center">
-            <Badge variant="default" className="bg-blue-600">
-              🎉 Meta de água atingida!
-            </Badge>
-          </div>
-        )}
+          <p className="text-sm text-muted-foreground text-center">
+            {waterProgress >= 100 
+              ? "Meta de hidratação atingida! 🎉" 
+              : `Faltam ${waterGoal - waterIntake}ml para sua meta`}
+          </p>
+        </div>
       </Card>
 
-      {diet.map((meal, index) => {
-        const Icon = meal.icon;
-        const isCompleted = completedMeals.includes(index);
-        const isLoadingMeal = isLoading[index];
-        
-        return (
-          <Card key={index} className="p-6 hover:shadow-medium transition-all">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Icon className="h-5 w-5 text-primary" />
+      {/* Meal Suggestion Cards */}
+      <div className="grid gap-4">
+        {meals.map((meal, index) => {
+          const Icon = meal.icon;
+          
+          return (
+            <Card 
+              key={index} 
+              className="p-6 hover:shadow-md transition-all duration-300"
+            >
+              <div className="space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-muted">
+                      <Icon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg text-foreground">{meal.name}</h3>
+                      <Badge variant="secondary" className="mt-1">
+                        {meal.calories}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-lg font-bold">{meal.name}</h4>
-                  <Badge variant="outline" className="text-xs mt-1">
-                    {meal.calories}
-                  </Badge>
+                
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">Sugestão:</h4>
+                  <ul className="space-y-1">
+                    {meal.foods.map((food, foodIndex) => (
+                      <li key={foodIndex} className="text-sm text-foreground flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        <span>{food}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-              
-              <Button
-                variant={isCompleted ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleToggleMeal(index)}
-                disabled={isLoadingMeal}
-                className="flex items-center gap-2"
-              >
-                {isCompleted && <Check className="h-4 w-4" />}
-                {isCompleted ? "Concluída" : "Marcar"}
-              </Button>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-2">Alimentos</p>
-                <ul className="space-y-1">
-                  {meal.foods.map((food, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <span className="text-primary mt-1">•</span>
-                      <span>{food}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="bg-secondary/10 p-3 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-secondary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold text-secondary mb-1">Por que estes alimentos?</p>
-                    <p className="text-sm">{meal.why}</p>
+                
+                <div className="pt-2 border-t border-border/50">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">{meal.why}</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        );
-      })}
+            </Card>
+          );
+        })}
+      </div>
 
-      <Card className="p-6 bg-gradient-accent text-accent-foreground">
-        <h4 className="font-bold mb-2">💡 Dicas Nutricionais</h4>
-        <ul className="text-sm space-y-1 list-disc list-inside">
-          <li>Beba ao menos 2-3 litros de água por dia</li>
-          <li>Evite alimentos ultraprocessados</li>
-          <li>Prepare refeições com antecedência quando possível</li>
-          <li>Respeite os horários das refeições</li>
-          {quizData.sugarConsumption === "yes" && (
-            <li className="text-accent-foreground/90 font-semibold">⚠️ Reduza o consumo de açúcar gradualmente</li>
-          )}
-        </ul>
+      {/* Nutritional Tips */}
+      <Card className="p-6 bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Dicas Nutricionais</h3>
+          </div>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-1">•</span>
+              <span>Beba pelo menos 2 litros de água por dia</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-1">•</span>
+              <span>Faça refeições a cada 3-4 horas para manter o metabolismo ativo</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-1">•</span>
+              <span>Evite alimentos processados e frituras</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-1">•</span>
+              <span>Priorize alimentos naturais e integrais</span>
+            </li>
+            {hasAllergies && (
+              <li className="flex items-start gap-2 text-orange-600 dark:text-orange-400 font-medium">
+                <span className="mt-1">⚠️</span>
+                <span>Atenção às suas alergias/restrições: {quizData.allergies}</span>
+              </li>
+            )}
+          </ul>
+        </div>
       </Card>
     </div>
   );
-};
-
-export default DietTab;
+}
