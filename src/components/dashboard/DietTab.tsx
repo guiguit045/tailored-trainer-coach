@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coffee, Sun, Moon, Apple, Info, Droplet, ChevronLeft, ChevronRight } from "lucide-react";
+import { Coffee, Sun, Moon, Apple, Info, Droplet, ChevronLeft, ChevronRight, Volume2, VolumeX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getWaterIntake, addWaterIntake } from "@/lib/workoutStorage";
 import { celebrateCompletion } from "@/lib/confetti";
@@ -14,6 +14,7 @@ import WaterGlass from "./WaterGlass";
 import { calculateNutritionGoals } from "@/lib/nutritionCalculator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion, AnimatePresence } from "framer-motion";
+import { waterSound } from "@/lib/waterSound";
 import type { QuizData } from "@/pages/Quiz";
 
 interface DietTabProps {
@@ -348,6 +349,7 @@ export default function DietTab({ quizData }: DietTabProps) {
   const [waterConfettiTriggered, setWaterConfettiTriggered] = useState(false);
   const [totalCalories, setTotalCalories] = useState(0);
   const [isLoadingCalories, setIsLoadingCalories] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   
   // Track which variation is shown for each meal (0, 1, or 2)
   const [mealVariations, setMealVariations] = useState<number[]>([0, 0, 0, 0]);
@@ -417,6 +419,11 @@ export default function DietTab({ quizData }: DietTabProps) {
   };
 
   const handleAddWater = async () => {
+    // Play drinking sound
+    if (soundEnabled) {
+      waterSound.playDrinkingSound();
+    }
+
     const newIntake = await addWaterIntake(200);
     setWaterIntake(newIntake);
     
@@ -428,6 +435,12 @@ export default function DietTab({ quizData }: DietTabProps) {
     if (newIntake >= waterGoalMl && !waterConfettiTriggered) {
       celebrateCompletion();
       setWaterConfettiTriggered(true);
+      
+      // Play achievement sound
+      if (soundEnabled) {
+        setTimeout(() => waterSound.playAchievementSound(), 300);
+      }
+      
       toast({
         title: "Meta de água atingida! 🎉",
         description: "Parabéns! Você completou sua meta de hidratação hoje!",
@@ -483,9 +496,24 @@ export default function DietTab({ quizData }: DietTabProps) {
               <Droplet className="h-5 w-5 text-blue-500" />
               <h3 className="text-lg font-semibold text-foreground">Água de Hoje</h3>
             </div>
-            <Badge variant="outline" className="text-sm">
-              {waterIntake} / {waterGoalMl} ml
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-sm">
+                {waterIntake} / {waterGoalMl} ml
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="h-8 w-8 p-0"
+                title={soundEnabled ? "Desativar sons" : "Ativar sons"}
+              >
+                {soundEnabled ? (
+                  <Volume2 className="h-4 w-4" />
+                ) : (
+                  <VolumeX className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
           
           {/* Animated water glass */}
