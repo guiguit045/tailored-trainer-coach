@@ -31,6 +31,13 @@ const Auth = () => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
+    // Check if user has seen install page
+    const hasSeenInstall = localStorage.getItem("hasSeenInstallPage");
+    if (hasSeenInstall !== "true") {
+      navigate("/");
+      return;
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         // Check if user has completed quiz
