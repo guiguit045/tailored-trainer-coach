@@ -20,6 +20,8 @@ import { format } from "date-fns";
 import { getEffectiveDate } from "@/lib/dateUtils";
 import AnimatedCard from "@/components/AnimatedCard";
 import type { QuizData } from "@/pages/Quiz";
+import { checkWaterStreakAchievement, checkCalorieStreakAchievement, unlockAchievement, type Achievement } from "@/lib/achievementService";
+import { AchievementNotification } from "@/components/AchievementNotification";
 interface DietTabProps {
   quizData: QuizData;
 }
@@ -267,6 +269,7 @@ export default function DietTab({
   const [isLoadingCalories, setIsLoadingCalories] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [mealHistoryKey, setMealHistoryKey] = useState(0);
+  const [unlockedAchievement, setUnlockedAchievement] = useState<Achievement | null>(null);
 
   // Track which variation is shown for each meal (0, 1, or 2)
   const [mealVariations, setMealVariations] = useState<number[]>([0, 0, 0, 0]);
@@ -338,6 +341,12 @@ export default function DietTab({
         if (soundEnabled) {
           setTimeout(() => achievementSound.playGoalReachedSound(), 300);
         }
+        
+        // Check for calorie streak achievement
+        const achievement = await checkCalorieStreakAchievement();
+        if (achievement) {
+          setUnlockedAchievement(achievement);
+        }
       }
     } catch (error) {
       console.error('Error loading calories:', error);
@@ -373,6 +382,12 @@ export default function DietTab({
     await loadDailyCalories();
     // Força atualização do histórico incrementando um contador
     setMealHistoryKey(prev => prev + 1);
+    
+    // Check for first meal achievement
+    const achievement = await unlockAchievement("first_meal");
+    if (achievement) {
+      setUnlockedAchievement(achievement);
+    }
   };
   const handleAddWater = async () => {
     try {
@@ -398,6 +413,18 @@ export default function DietTab({
           setTimeout(() => waterSound.playAchievementSound(), 300);
         }
         
+        // Check for water goal first-time achievement
+        const firstTimeAchievement = await unlockAchievement("water_goal_first");
+        if (firstTimeAchievement) {
+          setUnlockedAchievement(firstTimeAchievement);
+        }
+        
+        // Check for water streak achievement
+        const streakAchievement = await checkWaterStreakAchievement();
+        if (streakAchievement) {
+          setUnlockedAchievement(streakAchievement);
+        }
+        
         toast({
           title: "Meta de água atingida! 🎉",
           description: "Parabéns! Você completou sua meta de hidratação hoje!"
@@ -413,7 +440,9 @@ export default function DietTab({
     }
   };
   const hasAllergies = quizData.allergies && quizData.allergies !== "none";
-  return <div className="space-y-6 pb-20">
+  return (
+    <>
+      <div className="space-y-6 pb-20">
       {/* Goal Editor */}
       <div className="flex justify-end">
         <GoalEditor defaultCalories={calculatedGoals.calories} defaultWater={calculatedGoals.waterMl} onGoalsUpdated={handleGoalsUpdated} />
@@ -675,5 +704,12 @@ export default function DietTab({
             </ul>
           </div>
         </AnimatedCard>
-      </div>;
-  }
+      </div>
+      
+      <AchievementNotification 
+        achievement={unlockedAchievement}
+        onClose={() => setUnlockedAchievement(null)}
+      />
+    </>
+  );
+}

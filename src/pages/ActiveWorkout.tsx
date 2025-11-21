@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
 import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog, updateUserStreak, getLastExerciseData } from "@/lib/workoutStorage";
 import { achievementSound } from "@/lib/achievementSound";
+import { unlockAchievement, checkWorkoutStreakAchievement, type Achievement } from "@/lib/achievementService";
+import { AchievementNotification } from "@/components/AchievementNotification";
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -40,6 +42,7 @@ const ActiveWorkout = () => {
   const [workoutPlanId, setWorkoutPlanId] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ exerciseIdx: number; setIdx: number } | null>(null);
   const [lastExerciseData, setLastExerciseData] = useState<Record<number, { weight: string; reps: string } | null>>({});
+  const [unlockedAchievement, setUnlockedAchievement] = useState<Achievement | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -275,6 +278,20 @@ const ActiveWorkout = () => {
         
         // Play workout complete sound
         achievementSound.playWorkoutCompleteSound();
+        
+        // Check for first workout achievement
+        const firstWorkoutAchievement = await unlockAchievement("first_workout");
+        if (firstWorkoutAchievement) {
+          setUnlockedAchievement(firstWorkoutAchievement);
+        }
+        
+        // Check for workout streak achievement
+        if (streakResult?.currentStreak) {
+          const streakAchievement = await checkWorkoutStreakAchievement(streakResult.currentStreak);
+          if (streakAchievement) {
+            setUnlockedAchievement(streakAchievement);
+          }
+        }
         
         toast({
           title: "Treino concluído! 🎉",
@@ -539,6 +556,11 @@ const ActiveWorkout = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      <AchievementNotification 
+        achievement={unlockedAchievement}
+        onClose={() => setUnlockedAchievement(null)}
+      />
     </div>
   );
 };

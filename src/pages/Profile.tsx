@@ -24,6 +24,7 @@ import { motion } from "framer-motion";
 import { getQuizResponses } from "@/lib/workoutStorage";
 import { supabase } from "@/integrations/supabase/client";
 import AvatarUpload from "@/components/profile/AvatarUpload";
+import { AchievementsBadges } from "@/components/AchievementsBadges";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -187,6 +188,7 @@ const Profile = () => {
       await supabase.from('body_weight_logs').delete().eq('user_id', userId);
       await supabase.from('user_goals').delete().eq('user_id', userId);
       await supabase.from('quiz_responses').delete().eq('user_id', userId);
+      await supabase.from('achievements').delete().eq('user_id', userId);
       await supabase.from('profiles').delete().eq('user_id', userId);
 
       // Clear localStorage
@@ -514,6 +516,16 @@ const Profile = () => {
               Atualizar Perfil
             </Button>
           </Card>
+        </motion.div>
+
+        {/* Achievements Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="mt-6"
+        >
+          <AchievementsBadges />
         </motion.div>
 
         {/* Delete Account Section */}
