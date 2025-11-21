@@ -230,6 +230,39 @@ export async function getWorkoutHistory(limit = 10) {
   return data || [];
 }
 
+// Get last exercise data (weight and reps) from previous workouts
+export async function getLastExerciseData(exerciseName: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("exercise_logs")
+    .select(`
+      sets,
+      workout_sessions!inner (
+        user_id,
+        completed_at,
+        status
+      )
+    `)
+    .eq("exercise_name", exerciseName)
+    .eq("workout_sessions.user_id", user.id)
+    .eq("workout_sessions.status", "completed")
+    .order("workout_sessions.completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  
+  // Return the sets data from the last completed workout
+  const sets = data.sets as Array<{ weight: string; reps: string; completed: boolean }>;
+  
+  // Find the last completed set with data
+  const lastCompletedSet = sets.reverse().find(set => set.completed && (set.weight || set.reps));
+  
+  return lastCompletedSet || null;
+}
+
 // Calculate current streak
 export async function calculateStreak() {
   const { data: { user } } = await supabase.auth.getUser();
