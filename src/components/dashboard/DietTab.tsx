@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { waterSound } from "@/lib/waterSound";
 import { format } from "date-fns";
 import { getEffectiveDate } from "@/lib/dateUtils";
+import AnimatedCard from "@/components/AnimatedCard";
 import type { QuizData } from "@/pages/Quiz";
 interface DietTabProps {
   quizData: QuizData;
@@ -417,7 +418,7 @@ export default function DietTab({
       <MealPhotoCapture onMealAdded={handleMealAdded} quizData={quizData} />
 
       {/* Calorie Counter */}
-      <Card className="p-6 bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
+      <AnimatedCard delay={0} enableParallax={true} className="p-6 bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-foreground">Calorias de Hoje</h3>
@@ -436,10 +437,10 @@ export default function DietTab({
             {calorieProgress >= 100 ? "Meta de calorias atingida! 🎉" : `Faltam ${calorieGoal - totalCalories} kcal para sua meta`}
           </p>
         </div>
-      </Card>
+      </AnimatedCard>
 
       {/* Water Intake Tracker */}
-      <Card className="p-6 bg-gradient-to-br from-blue-500/5 to-cyan-500/10 border-blue-500/20">
+      <AnimatedCard delay={0.1} enableParallax={true} className="p-6 bg-gradient-to-br from-blue-500/5 to-cyan-500/10 border-blue-500/20">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -478,19 +479,19 @@ export default function DietTab({
         }} animate={{
           opacity: 1,
           y: 0
-        }} transition={{
-          duration: 0.3
-        }}>
+          }} transition={{
+            duration: 0.3
+          }}>
             {waterProgress >= 100 ? "🎉 Meta de hidratação atingida! Parabéns!" : `Faltam ${waterGoalMl - waterIntake}ml para sua meta`}
           </motion.p>
         </div>
-      </Card>
+      </AnimatedCard>
 
       {/* Meal History */}
       <MealHistory key={mealHistoryKey} onMealUpdated={loadDailyCalories} />
 
       {/* Meal Suggestions Accordion */}
-      <Card className="p-6">
+      <AnimatedCard delay={0.2} enableParallax={true} className="p-6">
         <div className="space-y-4">
           <motion.div initial={{
           opacity: 0,
@@ -637,10 +638,10 @@ export default function DietTab({
           })}
           </Accordion>
         </div>
-      </Card>
+      </AnimatedCard>
 
       {/* Nutritional Tips */}
-      <Card className="p-6 bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
+      <AnimatedCard delay={0.3} enableParallax={true} className="p-6 bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Info className="h-5 w-5 text-primary" />
@@ -663,12 +664,12 @@ export default function DietTab({
               <span className="text-primary mt-1">•</span>
               <span>Priorize alimentos naturais e integrais</span>
             </li>
-            {hasAllergies && <li className="flex items-start gap-2 text-orange-600 dark:text-orange-400 font-medium">
-                <span className="mt-1">⚠️</span>
-                <span>Atenção às suas alergias/restrições: {quizData.allergies}</span>
-              </li>}
-          </ul>
-        </div>
-      </Card>
-    </div>;
-}
+              {hasAllergies && <li className="flex items-start gap-2 text-orange-600 dark:text-orange-400 font-medium">
+                  <span className="mt-1">⚠️</span>
+                  <span>Atenção às suas alergias/restrições: {quizData.allergies}</span>
+                </li>}
+            </ul>
+          </div>
+        </AnimatedCard>
+      </div>;
+  }

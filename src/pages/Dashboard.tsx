@@ -14,6 +14,7 @@ import StreakIndicator from "@/components/workout/StreakIndicator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getQuizResponses, getActiveWorkoutPlan } from "@/lib/workoutStorage";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
+import AnimatedCard from "@/components/AnimatedCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -274,7 +275,7 @@ const Dashboard = () => {
       </header>
 
       <main className="max-w-7xl mx-auto py-8 px-4">
-        <Card className="p-4 md:p-6 mb-6 bg-gradient-card shadow-medium">
+        <AnimatedCard delay={0} enableParallax={true} className="p-4 md:p-6 mb-6 bg-gradient-card shadow-medium">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex-1">
               <h2 className="text-lg md:text-xl font-semibold mb-2 flex items-center gap-2">
@@ -307,7 +308,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-        </Card>
+        </AnimatedCard>
 
         <div className="mb-6">
           <StreakIndicator triggerCelebrationOnMount={showNewRecordCelebration} />
