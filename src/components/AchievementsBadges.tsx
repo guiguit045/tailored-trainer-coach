@@ -62,13 +62,20 @@ export const AchievementsBadges = () => {
               ease: [0.25, 0.46, 0.45, 0.94]
             }}
           >
-            <Card
-              className={`p-4 text-center transition-all flex flex-col justify-between min-h-[160px] ${
-                achievement.unlocked
-                  ? "bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30 shadow-lg"
-                  : "bg-muted/50 opacity-60 grayscale"
-              }`}
+            <motion.div
+              whileHover={achievement.unlocked ? { 
+                scale: 1.05,
+                boxShadow: "0 10px 40px -10px hsl(var(--primary) / 0.4)"
+              } : undefined}
+              transition={{ duration: 0.2 }}
             >
+              <Card
+                className={`p-4 text-center transition-all flex flex-col justify-between min-h-[160px] ${
+                  achievement.unlocked
+                    ? "bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30 shadow-lg cursor-pointer"
+                    : "bg-muted/50 opacity-60 grayscale"
+                }`}
+              >
               <div className="relative flex flex-col items-center">
                 <motion.div
                   className="text-4xl md:text-5xl mb-2 flex items-center justify-center"
@@ -113,6 +120,7 @@ export const AchievementsBadges = () => {
                 </p>
               )}
             </Card>
+            </motion.div>
           </motion.div>
         ))}
       </div>
