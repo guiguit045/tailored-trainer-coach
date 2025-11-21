@@ -17,7 +17,7 @@ import { ArrowLeft, ChevronDown, ChevronUp, Info, Plus, Trash2 } from "lucide-re
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
-import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog, updateUserStreak } from "@/lib/workoutStorage";
+import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog, updateUserStreak, getLastExerciseData } from "@/lib/workoutStorage";
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -38,6 +38,7 @@ const ActiveWorkout = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [workoutPlanId, setWorkoutPlanId] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ exerciseIdx: number; setIdx: number } | null>(null);
+  const [lastExerciseData, setLastExerciseData] = useState<Record<number, { weight: string; reps: string } | null>>({});
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -74,23 +75,32 @@ const ActiveWorkout = () => {
         const initialSets: Record<number, boolean[]> = {};
         const initialData: Record<number, Array<{ weight: string; reps: string }>> = {};
         const initialCounts: Record<number, number> = {};
+        const lastData: Record<number, { weight: string; reps: string } | null> = {};
         
-        currentWorkout.exercises.forEach((exercise: any, idx: number) => {
-          const count = parseInt(exercise.sets) || 3;
-          initialSets[idx] = Array(count).fill(false);
-          initialCounts[idx] = count;
-          
-          // Parse reps range (e.g., "8-10" or "12")
-          const repsRange = exercise.reps.split("-");
-          const defaultReps = repsRange[0];
-          
-          initialData[idx] = Array(count).fill({ weight: "", reps: defaultReps });
-        });
+        // Fetch last exercise data for each exercise
+        await Promise.all(
+          currentWorkout.exercises.map(async (exercise: any, idx: number) => {
+            const count = parseInt(exercise.sets) || 3;
+            initialSets[idx] = Array(count).fill(false);
+            initialCounts[idx] = count;
+            
+            // Parse reps range (e.g., "8-10" or "12")
+            const repsRange = exercise.reps.split("-");
+            const defaultReps = repsRange[0];
+            
+            initialData[idx] = Array(count).fill({ weight: "", reps: defaultReps });
+            
+            // Fetch last workout data for this exercise
+            const lastExercise = await getLastExerciseData(exercise.name);
+            lastData[idx] = lastExercise;
+          })
+        );
         
         setCompletedSets(initialSets);
         setSetData(initialData);
         setSetsCount(initialCounts);
         setOriginalSetsCount(initialCounts);
+        setLastExerciseData(lastData);
       } else {
         navigate("/dashboard?tab=workout");
       }
@@ -343,9 +353,16 @@ const ActiveWorkout = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-base mb-1">{exercise.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {completedCount}/{currentSetsCount} feito(s)
-                    </p>
+                    <div className="space-y-0.5">
+                      <p className="text-sm text-muted-foreground">
+                        {completedCount}/{currentSetsCount} feito(s)
+                      </p>
+                      {lastExerciseData[exerciseIdx] && (
+                        <p className="text-xs text-muted-foreground">
+                          Último: {lastExerciseData[exerciseIdx]?.weight || '0'}kg × {lastExerciseData[exerciseIdx]?.reps || '0'} rep
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
