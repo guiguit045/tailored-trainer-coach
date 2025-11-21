@@ -84,15 +84,22 @@ const ActiveWorkout = () => {
             initialSets[idx] = Array(count).fill(false);
             initialCounts[idx] = count;
             
-            // Parse reps range (e.g., "8-10" or "12")
-            const repsRange = exercise.reps.split("-");
-            const defaultReps = repsRange[0];
-            
-            initialData[idx] = Array(count).fill({ weight: "", reps: defaultReps });
-            
             // Fetch last workout data for this exercise
             const lastExercise = await getLastExerciseData(exercise.name);
             lastData[idx] = lastExercise;
+            
+            // Use last exercise data if available, otherwise use default
+            if (lastExercise && (lastExercise.weight || lastExercise.reps)) {
+              initialData[idx] = Array(count).fill({ 
+                weight: lastExercise.weight || "", 
+                reps: lastExercise.reps || "" 
+              });
+            } else {
+              // Parse reps range (e.g., "8-10" or "12") as fallback
+              const repsRange = exercise.reps.split("-");
+              const defaultReps = repsRange[0];
+              initialData[idx] = Array(count).fill({ weight: "", reps: defaultReps });
+            }
           })
         );
         
