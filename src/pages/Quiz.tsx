@@ -30,7 +30,6 @@ export interface Workout {
 
 export interface QuizData {
   age: string;
-  gender: "male" | "female" | "";
   height: string;
   currentWeight: string;
   desiredWeight: string;
@@ -89,15 +88,6 @@ interface Question {
 
 const questions: Question[] = [
   { id: "age", title: "Qual é a sua idade?", type: "input", placeholder: "Ex: 25" },
-  {
-    id: "gender",
-    title: "Qual é o seu sexo biológico?",
-    type: "radio",
-    options: [
-      { value: "male", label: "Masculino" },
-      { value: "female", label: "Feminino" },
-    ],
-  },
   { id: "height", title: "Qual é a sua altura?", type: "input", placeholder: "Ex: 1.75" },
   { id: "currentWeight", title: "Qual é o seu peso atual?", type: "input", placeholder: "Ex: 70" },
   { id: "desiredWeight", title: "Qual é o seu peso desejado?", type: "input", placeholder: "Ex: 65" },
@@ -399,7 +389,6 @@ const Quiz = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [quizData, setQuizData] = useState<QuizData>({
     age: "",
-    gender: "",
     height: "",
     currentWeight: "",
     desiredWeight: "",
@@ -599,7 +588,6 @@ const Quiz = () => {
             age: parseInt(quizData.age),
             weight: parseFloat(quizData.currentWeight),
             height: parseFloat(quizData.height),
-            gender: quizData.gender,
             goal: quizData.mainGoal,
             experienceLevel: quizData.hasTrainedBefore === "yes" ? quizData.experienceTime : "beginner",
             trainingFrequency: parseInt(quizData.trainingDays),

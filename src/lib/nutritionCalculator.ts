@@ -105,7 +105,7 @@ export function calculateNutritionGoals(quizData: QuizData): NutritionGoals {
   const age = typeof quizData.age === 'string' ? parseInt(quizData.age) || 25 : 25;
   
   // Map quiz values to expected format
-  const gender = quizData.gender || "male"; // Use gender from quiz data, default to male if not provided
+  const gender = "male"; // QuizData doesn't have sex/gender field, default to male
   const trainingDaysStr = quizData.trainingDays || "3-4";
   const trainingFrequency = trainingDaysStr.includes("1-2") ? 2 : 
                            trainingDaysStr.includes("3-4") ? 4 :

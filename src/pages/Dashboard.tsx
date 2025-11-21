@@ -68,7 +68,6 @@ const Dashboard = () => {
           // Convert database format to QuizData format
           const quizDataConverted: QuizData = {
             age: dbQuizData.age?.toString() || "",
-            gender: dbQuizData.gender as "male" | "female" | "" || "",
             height: dbQuizData.height?.toString() || "",
             currentWeight: dbQuizData.weight?.toString() || "",
             desiredWeight: "",
