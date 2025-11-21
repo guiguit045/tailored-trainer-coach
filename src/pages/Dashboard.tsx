@@ -13,6 +13,7 @@ import DietTab from "@/components/dashboard/DietTab";
 import StreakIndicator from "@/components/workout/StreakIndicator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getQuizResponses, getActiveWorkoutPlan } from "@/lib/workoutStorage";
+import OnboardingTutorial from "@/components/OnboardingTutorial";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +48,7 @@ const Dashboard = () => {
   const [targetWeight, setTargetWeight] = useState<number>(0);
   const [showNewRecordCelebration, setShowNewRecordCelebration] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const defaultTab = searchParams.get("tab") || "workout";
 
   // Get daily motivational quote
@@ -55,6 +57,15 @@ const Dashboard = () => {
     const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
     const quoteIndex = dayOfYear % motivationalQuotes.length;
     setDailyQuote(motivationalQuotes[quoteIndex]);
+    
+    // Check if user has completed onboarding
+    const hasCompletedOnboarding = localStorage.getItem("hasCompletedOnboarding");
+    if (hasCompletedOnboarding !== "true") {
+      // Delay onboarding slightly to let the dashboard load first
+      setTimeout(() => {
+        setShowOnboarding(true);
+      }, 500);
+    }
   }, []);
 
   useEffect(() => {
@@ -217,6 +228,13 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+      {/* Onboarding Tutorial */}
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingTutorial onComplete={() => setShowOnboarding(false)} />
+        )}
+      </AnimatePresence>
+
       <header className="bg-gradient-hero text-primary-foreground py-4 md:py-6 px-3 md:px-4 shadow-medium">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-2">
           <div className="flex-shrink-0">
