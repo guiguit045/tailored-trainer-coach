@@ -89,6 +89,7 @@ export const AITrainerChat = () => {
               scale: 1, 
               opacity: 1, 
               y: 0,
+              bottom: location.pathname === '/workout/active' ? '6rem' : '1.5rem',
               transition: {
                 type: "spring",
                 stiffness: 260,
@@ -105,9 +106,7 @@ export const AITrainerChat = () => {
             }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className={`fixed right-6 z-50 ${
-              location.pathname === '/workout/active' ? 'bottom-24' : 'bottom-6'
-            }`}
+            className="fixed right-6 z-50"
           >
             <Button
               onClick={() => setIsOpen(true)}
