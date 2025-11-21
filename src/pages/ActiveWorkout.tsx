@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Workout } from "./Quiz";
 import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, saveExerciseLog, updateUserStreak, getLastExerciseData } from "@/lib/workoutStorage";
+import { achievementSound } from "@/lib/achievementSound";
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -160,8 +161,9 @@ const ActiveWorkout = () => {
       newSets[exerciseIdx] = [...(prev[exerciseIdx] || [])];
       newSets[exerciseIdx][setIdx] = !newSets[exerciseIdx][setIdx];
       
-      // If set was just completed, start rest timer
+      // If set was just completed, start rest timer and play sound
       if (newSets[exerciseIdx][setIdx] && workout) {
+        achievementSound.playSetCompleteSound();
         const exercise = workout.exercises[exerciseIdx];
         const restTime = parseInt(exercise.rest.replace(/[^0-9]/g, "")) || 60;
         startRestTimer(restTime);
@@ -270,6 +272,9 @@ const ActiveWorkout = () => {
         
         // Update streak and check if it's a new record
         const streakResult = await updateUserStreak();
+        
+        // Play workout complete sound
+        achievementSound.playWorkoutCompleteSound();
         
         toast({
           title: "Treino concluído! 🎉",

@@ -15,6 +15,7 @@ import { calculateNutritionGoals } from "@/lib/nutritionCalculator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion, AnimatePresence } from "framer-motion";
 import { waterSound } from "@/lib/waterSound";
+import { achievementSound } from "@/lib/achievementSound";
 import { format } from "date-fns";
 import { getEffectiveDate } from "@/lib/dateUtils";
 import AnimatedCard from "@/components/AnimatedCard";
@@ -334,6 +335,9 @@ export default function DietTab({
       setTotalCalories(total);
       if (total >= calorieGoal) {
         celebrateCompletion();
+        if (soundEnabled) {
+          setTimeout(() => achievementSound.playGoalReachedSound(), 300);
+        }
       }
     } catch (error) {
       console.error('Error loading calories:', error);
