@@ -513,7 +513,7 @@ const ActiveWorkout = () => {
           className="w-full h-14 text-base font-bold"
           size="lg"
         >
-          REGISTRAR A PRÓXIMA SÉRIE
+          FINALIZAR TREINO
         </Button>
       </div>
 
