@@ -39,18 +39,18 @@ export const AchievementsBadges = () => {
   }
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <Card className="p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-2">
-          <Trophy className="w-6 h-6 text-primary" />
-          <h2 className="text-2xl font-bold">Conquistas</h2>
+          <Trophy className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+          <h2 className="text-xl md:text-2xl font-bold">Conquistas</h2>
         </div>
-        <Badge variant="secondary" className="text-lg px-4 py-2">
+        <Badge variant="secondary" className="text-base md:text-lg px-3 md:px-4 py-1.5 md:py-2">
           {unlockedCount}/{totalCount}
         </Badge>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
         {achievements.map((achievement, index) => (
           <motion.div
             key={achievement.achievement_type}
@@ -59,15 +59,15 @@ export const AchievementsBadges = () => {
             transition={{ delay: index * 0.1 }}
           >
             <Card
-              className={`p-4 text-center transition-all ${
+              className={`p-4 text-center transition-all flex flex-col justify-between min-h-[160px] ${
                 achievement.unlocked
                   ? "bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30 shadow-lg"
                   : "bg-muted/50 opacity-60 grayscale"
               }`}
             >
-              <div className="relative">
+              <div className="relative flex flex-col items-center">
                 <motion.div
-                  className="text-5xl mb-2"
+                  className="text-4xl md:text-5xl mb-2 flex items-center justify-center"
                   animate={
                     achievement.unlocked
                       ? { rotate: [0, -10, 10, -10, 0] }
@@ -79,7 +79,7 @@ export const AchievementsBadges = () => {
                     repeatDelay: 3
                   }}
                 >
-                  {achievement.unlocked ? achievement.icon : <Lock className="w-12 h-12 mx-auto text-muted-foreground" />}
+                  {achievement.unlocked ? achievement.icon : <Lock className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground" />}
                 </motion.div>
                 
                 {achievement.unlocked && (
@@ -93,15 +93,18 @@ export const AchievementsBadges = () => {
                 )}
               </div>
               
-              <h3 className={`font-semibold text-sm mb-1 ${achievement.unlocked ? "text-foreground" : "text-muted-foreground"}`}>
-                {achievement.title}
-              </h3>
-              <p className={`text-xs ${achievement.unlocked ? "text-muted-foreground" : "text-muted-foreground/50"}`}>
-                {achievement.description}
-              </p>
+              
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <h3 className={`font-semibold text-sm mb-1 text-center ${achievement.unlocked ? "text-foreground" : "text-muted-foreground"}`}>
+                  {achievement.title}
+                </h3>
+                <p className={`text-xs text-center ${achievement.unlocked ? "text-muted-foreground" : "text-muted-foreground/50"}`}>
+                  {achievement.description}
+                </p>
+              </div>
               
               {achievement.unlocked && achievement.unlocked_at && (
-                <p className="text-xs text-primary mt-2">
+                <p className="text-xs text-primary mt-2 text-center">
                   {new Date(achievement.unlocked_at).toLocaleDateString('pt-BR')}
                 </p>
               )}
