@@ -7,6 +7,7 @@ import { Sparkles, X, Send, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "react-router-dom";
 
 interface Message {
   role: "user" | "assistant";
@@ -14,6 +15,7 @@ interface Message {
 }
 
 export const AITrainerChat = () => {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -103,7 +105,9 @@ export const AITrainerChat = () => {
             }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="fixed bottom-6 right-6 z-50"
+            className={`fixed right-6 z-50 ${
+              location.pathname === '/workout/active' ? 'bottom-24' : 'bottom-6'
+            }`}
           >
             <Button
               onClick={() => setIsOpen(true)}
