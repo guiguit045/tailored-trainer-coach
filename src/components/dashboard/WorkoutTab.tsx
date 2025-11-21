@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { QuizData, Exercise, Workout } from "@/pages/Quiz";
 import { getCurrentCycleCompletedWorkouts } from "@/lib/workoutStorage";
+import AnimatedCard from "@/components/AnimatedCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -252,7 +253,7 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
   return (
     <div className="space-y-6">
       {/* Header Card with Plan Info */}
-      <Card className="overflow-hidden bg-gradient-hero text-primary-foreground shadow-elegant">
+      <AnimatedCard delay={0} enableParallax={true} className="overflow-hidden bg-gradient-hero text-primary-foreground shadow-elegant">
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -281,10 +282,10 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
               : "Plano personalizado baseado em seu perfil e objetivos"}
           </p>
         </div>
-      </Card>
+      </AnimatedCard>
 
       {quizData.bodyAnalysis && (
-        <Card className="p-6 bg-gradient-accent shadow-medium">
+        <AnimatedCard delay={0.1} enableParallax={true} className="p-6 bg-gradient-accent shadow-medium">
           <div className="flex items-start gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -301,7 +302,7 @@ const WorkoutTab = ({ quizData }: WorkoutTabProps) => {
               {quizData.bodyAnalysis}
             </p>
           </div>
-        </Card>
+        </AnimatedCard>
       )}
 
       {/* Workout Days Accordion */}

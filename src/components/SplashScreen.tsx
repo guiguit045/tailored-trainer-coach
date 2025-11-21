@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Dumbbell } from "lucide-react";
+import SkeletonCard from "@/components/SkeletonCard";
 
 interface SplashScreenProps {
   onComplete: () => void;
