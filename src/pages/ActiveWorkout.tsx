@@ -478,6 +478,25 @@ const ActiveWorkout = () => {
                         <p className="text-xs font-semibold text-primary mb-1">💡 Dica</p>
                         <p className="text-xs text-muted-foreground">{exercise.tip}</p>
                       </div>
+
+                      {/* Why this exercise section */}
+                      {exercise.why && (
+                        <div className="mt-3 bg-primary/5 rounded-lg p-3 border border-primary/20">
+                          <div className="flex items-start gap-2">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Info className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-sm text-primary mb-1">
+                                Por que este exercício?
+                              </h4>
+                              <p className="text-sm text-foreground/80">
+                                {exercise.why}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
