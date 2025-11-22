@@ -482,7 +482,7 @@ const Profile = () => {
           <Card className="p-6 border-destructive/50">
             <div className="text-center">
               <h3 className="text-lg font-bold mb-2 text-red-600">Zona de Perigo</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm mb-4 text-slate-50">
                 Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos.
               </p>
               <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} className="gap-2">
