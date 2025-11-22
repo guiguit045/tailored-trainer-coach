@@ -205,6 +205,12 @@ ${bodyAnalysis}
 
 📋 ESTRUTURA: Crie ${quizData.trainingDays} treinos diferentes e complementares.
 
+⚠️ IMPORTANTE: Cada treino DEVE conter EXATAMENTE entre 6 a 8 exercícios!
+• MÍNIMO: 6 exercícios por treino
+• MÁXIMO: 8 exercícios por treino
+• Distribua entre compostos (3-4) e isolamentos (2-4)
+• Varie os grupos musculares dentro do treino
+
 ⚙️ PARÂMETROS CIENTÍFICOS POR OBJETIVO:
 
 ${quizData.mainGoal === 'lose' ? `
