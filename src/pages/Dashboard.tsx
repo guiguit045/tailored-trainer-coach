@@ -82,7 +82,7 @@ const Dashboard = () => {
             age: dbQuizData.age?.toString() || "",
             height: dbQuizData.height?.toString() || "",
             currentWeight: dbQuizData.weight?.toString() || "",
-            desiredWeight: dbQuizData.target_weight?.toString() || "",
+            desiredWeight: "",
             mainGoal: dbQuizData.goal || "",
             trainingTime: "",
             hasTrainedBefore: dbQuizData.experienceLevel !== "beginner" ? "yes" : "no",
@@ -143,24 +143,19 @@ const Dashboard = () => {
 
           setQuizData(quizDataConverted);
           
-          // Use target weight from quiz or calculate based on goal
-          const targetFromQuiz = dbQuizData.target_weight ? parseFloat(dbQuizData.target_weight.toString()) : null;
+          // Calculate target weight based on goal
+          const currentWeight = parseFloat(dbQuizData.weight?.toString() || "0");
+          let calculatedTarget = currentWeight;
           
-          if (targetFromQuiz) {
-            setTargetWeight(targetFromQuiz);
-          } else {
-            // Fallback: calculate target weight based on goal
-            const currentWeight = parseFloat(dbQuizData.weight?.toString() || "0");
-            let calculatedTarget = currentWeight;
-            
-            if (dbQuizData.goal === "lose") {
-              calculatedTarget = Math.round(currentWeight * 0.9);
-            } else if (dbQuizData.goal === "gain") {
-              calculatedTarget = Math.round(currentWeight * 1.07);
-            }
-            
-            setTargetWeight(calculatedTarget);
+          if (dbQuizData.goal === "lose") {
+            // For weight loss: reduce 5-10% of current weight
+            calculatedTarget = Math.round(currentWeight * 0.9);
+          } else if (dbQuizData.goal === "gain") {
+            // For muscle gain: increase 5-8% of current weight
+            calculatedTarget = Math.round(currentWeight * 1.07);
           }
+          
+          setTargetWeight(calculatedTarget);
           
           // Also update localStorage for compatibility
           localStorage.setItem("quizData", JSON.stringify(quizDataConverted));

@@ -228,7 +228,6 @@ export type Database = {
           physical_limitations: string | null
           preferred_time: string | null
           target_areas: string[] | null
-          target_weight: number | null
           training_frequency: number | null
           updated_at: string
           user_id: string
@@ -251,7 +250,6 @@ export type Database = {
           physical_limitations?: string | null
           preferred_time?: string | null
           target_areas?: string[] | null
-          target_weight?: number | null
           training_frequency?: number | null
           updated_at?: string
           user_id: string
@@ -274,7 +272,6 @@ export type Database = {
           physical_limitations?: string | null
           preferred_time?: string | null
           target_areas?: string[] | null
-          target_weight?: number | null
           training_frequency?: number | null
           updated_at?: string
           user_id?: string

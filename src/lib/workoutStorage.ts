@@ -7,7 +7,6 @@ export interface QuizData {
   age?: number;
   weight?: number;
   height?: number;
-  target_weight?: number;
   gender?: string;
   goal?: string;
   experienceLevel?: string;
@@ -55,7 +54,6 @@ export async function saveQuizResponses(data: QuizData) {
       age: data.age,
       weight: data.weight,
       height: data.height,
-      target_weight: data.target_weight,
       gender: data.gender,
       goal: data.goal,
       experience_level: data.experienceLevel,
@@ -92,7 +90,6 @@ export async function getQuizResponses(): Promise<QuizData | null> {
     age: data.age || undefined,
     weight: data.weight || undefined,
     height: data.height || undefined,
-    target_weight: data.target_weight || undefined,
     gender: data.gender || undefined,
     goal: data.goal || undefined,
     experienceLevel: data.experience_level || undefined,
