@@ -40,6 +40,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   useEffect(() => {
     loadProfile();
   }, []);
@@ -181,8 +182,13 @@ const Profile = () => {
         description: "Sua conta e todos os dados foram removidos com sucesso"
       });
 
-      // Redirect to auth page
-      navigate("/auth");
+      // Trigger exit animation
+      setIsExiting(true);
+      
+      // Wait for animation to complete before redirecting
+      setTimeout(() => {
+        navigate("/auth");
+      }, 500);
     } catch (error) {
       console.error("Error deleting account:", error);
       toast({
@@ -220,7 +226,11 @@ const Profile = () => {
         </Card>
       </div>;
   }
-  return <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+  return <motion.div 
+      className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background"
+      animate={{ opacity: isExiting ? 0 : 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <header className="bg-gradient-hero text-primary-foreground py-6 px-4 shadow-medium">
         <div className="max-w-7xl mx-auto">
           <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="mb-4 text-primary-foreground hover:bg-white/10">
@@ -529,6 +539,6 @@ const Profile = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>;
+    </motion.div>;
 };
 export default Profile;
