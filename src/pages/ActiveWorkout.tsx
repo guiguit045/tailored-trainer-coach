@@ -21,8 +21,6 @@ import { getActiveWorkoutPlan, startWorkoutSession, completeWorkoutSession, save
 import { achievementSound } from "@/lib/achievementSound";
 import { unlockAchievement, checkWorkoutStreakAchievement, type Achievement } from "@/lib/achievementService";
 import { AchievementNotification } from "@/components/AchievementNotification";
-import { ProgressionSuggestion } from "@/components/workout/ProgressionSuggestion";
-import type { ProgressionSuggestion as ProgressionSuggestionType } from "@/lib/progressionSystem";
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -427,56 +425,7 @@ const ActiveWorkout = () => {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <div className="px-4 pb-4 space-y-3 border-t pt-3">
-                      {/* Progression Suggestion */}
-                      <ProgressionSuggestion
-                        exerciseName={exercise.name}
-                        currentSets={exercise.sets}
-                        currentReps={exercise.reps}
-                        currentWeight={lastExerciseData[exerciseIdx]?.weight || "0"}
-                        exerciseType={
-                          exercise.name.toLowerCase().includes("agachamento") ||
-                          exercise.name.toLowerCase().includes("supino") ||
-                          exercise.name.toLowerCase().includes("terra") ||
-                          exercise.name.toLowerCase().includes("barra fixa") ||
-                          exercise.name.toLowerCase().includes("remada") ||
-                          exercise.name.toLowerCase().includes("squat") ||
-                          exercise.name.toLowerCase().includes("deadlift") ||
-                          exercise.name.toLowerCase().includes("bench") ||
-                          exercise.name.toLowerCase().includes("pull") ||
-                          exercise.name.toLowerCase().includes("row")
-                            ? "compound"
-                            : "isolation"
-                        }
-                        onApplySuggestion={(suggestion: ProgressionSuggestionType) => {
-                          // Aplicar sugestão automaticamente
-                          if (suggestion.type === "weight") {
-                            const newWeight = parseFloat(suggestion.suggestedValue) || 0;
-                            const updatedData = { ...setData };
-                            updatedData[exerciseIdx] = updatedData[exerciseIdx].map(set => ({
-                              ...set,
-                              weight: newWeight.toString()
-                            }));
-                            setSetData(updatedData);
-                            toast({
-                              title: "Progressão aplicada! 💪",
-                              description: `Peso atualizado para ${newWeight}kg`,
-                            });
-                          } else if (suggestion.type === "reps") {
-                            toast({
-                              title: "Dica de progressão",
-                              description: suggestion.reason,
-                            });
-                          } else if (suggestion.type === "sets") {
-                            addSet(exerciseIdx);
-                            toast({
-                              title: "Série adicionada! 📈",
-                              description: "Nova série para aumentar volume de treino",
-                            });
-                          }
-                        }}
-                      />
-
+                    <div className="px-4 pb-4 space-y-2 border-t pt-3">
                       {/* Sets List */}
                       {Array.from({ length: currentSetsCount }).map((_, setIdx) => {
                         const isCompleted = completedSets[exerciseIdx]?.[setIdx];

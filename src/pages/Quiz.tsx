@@ -6,11 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowRight, ArrowLeft, Upload, X, ChevronLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { celebrateAnswer, celebrateCompletion } from "@/lib/confetti";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
 import { saveQuizResponses, saveWorkoutPlan } from "@/lib/workoutStorage";
 
 export interface Exercise {
@@ -669,25 +668,6 @@ const Quiz = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex flex-col">
-      {/* Back to Auth Button - Only on first question */}
-      {currentIndex === 0 && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="fixed top-4 left-4 z-50"
-        >
-          <Button
-            onClick={() => navigate("/auth")}
-            variant="ghost"
-            size="sm"
-            className="gap-2 hover:bg-background/80 backdrop-blur-sm"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Voltar para login
-          </Button>
-        </motion.div>
-      )}
-
       {/* Progress Bar */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
         <div className="h-2 bg-muted/30">

@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Dumbbell, Loader2 } from "lucide-react";
 import { z } from "zod";
-import { motion, AnimatePresence } from "framer-motion";
 
 const signUpSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100),
@@ -214,107 +213,66 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 shadow-elegant animate-fade-in">
         <div className="flex flex-col items-center mb-8">
-          <motion.div 
-            className="w-16 h-16 bg-gradient-hero rounded-full flex items-center justify-center mb-4"
-            animate={{ 
-              rotate: isSignUp ? 360 : 0,
-              scale: isSignUp ? [1, 1.1, 1] : [1, 1.05, 1]
-            }}
-            transition={{ 
-              duration: 0.5,
-              ease: "easeInOut"
-            }}
-          >
+          <div className="w-16 h-16 bg-gradient-hero rounded-full flex items-center justify-center mb-4">
             <Dumbbell className="h-8 w-8 text-primary-foreground" />
-          </motion.div>
-          
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={isSignUp ? "signup" : "signin"}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.3 }}
-              className="text-center"
-            >
-              <h1 className="text-3xl font-bold mb-2">
-                {isSignUp ? "Criar Conta" : "Bem-vindo de volta"}
-              </h1>
-              <p className="text-muted-foreground">
-                {isSignUp
-                  ? "Comece sua jornada fitness hoje"
-                  : "Entre para continuar seu treino"}
-              </p>
-            </motion.div>
-          </AnimatePresence>
+          </div>
+          <h1 className="text-3xl font-bold text-center mb-2">
+            {isSignUp ? "Criar Conta" : "Bem-vindo de volta"}
+          </h1>
+          <p className="text-muted-foreground text-center">
+            {isSignUp
+              ? "Comece sua jornada fitness hoje"
+              : "Entre para continuar seu treino"}
+          </p>
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.form
-            key={isSignUp ? "signup-form" : "signin-form"}
-            initial={{ opacity: 0, x: isSignUp ? 20 : -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: isSignUp ? -20 : 20 }}
-            transition={{ 
-              duration: 0.4,
-              ease: [0.25, 0.46, 0.45, 0.94]
-            }}
-            onSubmit={isSignUp ? handleSignUp : handleSignIn} 
-            className="space-y-4"
-          >
-            {isSignUp && (
-              <motion.div 
-                className="space-y-2"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Label htmlFor="name">Nome</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Seu nome completo"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </motion.div>
-            )}
-
+        <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
+          {isSignUp && (
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="name">Nome</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="name"
+                type="text"
+                placeholder="Seu nome completo"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
                 disabled={loading}
               />
             </div>
+          )}
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSignUp ? "Criar Conta" : "Entrar"}
-            </Button>
-          </motion.form>
-        </AnimatePresence>
+          <div className="space-y-2">
+            <Label htmlFor="password">Senha</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSignUp ? "Criar Conta" : "Entrar"}
+          </Button>
+        </form>
 
         <div className="mt-6 space-y-4">
           <div className="relative">
@@ -359,23 +317,15 @@ const Auth = () => {
         </div>
 
         <div className="mt-6 text-center">
-          <motion.button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              // Reset form
-              setName("");
-              setEmail("");
-              setPassword("");
-            }}
+          <button
+            onClick={() => setIsSignUp(!isSignUp)}
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
             disabled={loading}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             {isSignUp
               ? "Já tem uma conta? Entrar"
               : "Não tem conta? Cadastre-se"}
-          </motion.button>
+          </button>
         </div>
       </Card>
     </div>
