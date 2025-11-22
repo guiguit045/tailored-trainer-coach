@@ -166,15 +166,23 @@ const Profile = () => {
       // Clear localStorage
       localStorage.clear();
 
-      // Sign out and delete auth user
+      // Delete the auth user account
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
+      
+      if (deleteError) {
+        console.error("Error deleting auth user:", deleteError);
+      }
+
+      // Sign out
       await supabase.auth.signOut();
+      
       toast({
         title: "Conta excluída",
         description: "Sua conta e todos os dados foram removidos com sucesso"
       });
 
-      // Redirect to welcome page
-      navigate("/welcome");
+      // Redirect to auth page
+      navigate("/auth");
     } catch (error) {
       console.error("Error deleting account:", error);
       toast({
